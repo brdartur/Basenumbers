@@ -38,7 +38,7 @@ const SoundOffIcon = () => (
 );
 
 const BaseLogo = () => (
-  <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <mask id="base-logo-mask">
       <circle cx="50" cy="50" r="50" fill="white"/>
     </mask>
@@ -303,7 +303,7 @@ export default function App() {
 
   return (
     <div 
-      className="min-h-screen w-full flex flex-col p-4 relative overflow-hidden font-sans"
+      className="min-h-screen w-full flex flex-col items-center p-4 relative overflow-hidden font-sans"
       style={{ backgroundColor: COLORS.background }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -311,20 +311,25 @@ export default function App() {
       {/* Dynamic Background */}
       <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full opacity-5 blur-[120px]" style={{ background: COLORS.primary }} />
 
-      <div className="w-full max-w-[420px] mx-auto z-10 flex flex-col h-full justify-between pb-12">
+      {/* 
+        Main Container:
+        Restricted to 360px to exactly match the board width + layout tightness.
+        This ensures headers, badges, and the board share the exact same vertical guide lines.
+      */}
+      <div className="w-full max-w-[360px] z-10 flex flex-col h-full justify-between pb-12">
         
         {/* TOP BAR */}
-        <div className="flex flex-col gap-4 mb-4">
+        <div className="flex flex-col gap-4 mb-2">
             {/* Nav Row */}
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                     <BaseLogo />
-                    <span className="font-black text-2xl tracking-tight italic">
+                    <span className="font-black text-xl tracking-tight italic">
                       Base <span className="text-[#0052FF]">2048</span>
                     </span>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                     <button onClick={toggleSound} className="p-2 text-gray-500 hover:text-white transition-colors">
                         {soundEnabled ? <SoundOnIcon /> : <SoundOffIcon />}
                     </button>
@@ -336,17 +341,17 @@ export default function App() {
             </div>
 
             {/* Score Row */}
-            <div className="flex justify-between items-end gap-3">
+            <div className="flex justify-between items-end gap-2">
                  <div className="flex flex-col">
                     <span className="text-[10px] uppercase text-gray-500 font-bold tracking-widest mb-1">Current</span>
-                    <div className="bg-[#1A1A1A] border border-[#333] px-4 py-2 rounded min-w-[100px]">
+                    <div className="bg-[#1A1A1A] border border-[#333] px-3 py-2 rounded min-w-[80px]">
                         <span className="text-xl font-mono font-bold text-white">{score}</span>
                     </div>
                  </div>
 
                  <div className="flex flex-col">
                     <span className="text-[10px] uppercase text-gray-500 font-bold tracking-widest mb-1">Best</span>
-                    <div className="bg-[#1A1A1A] border border-[#333] px-4 py-2 rounded min-w-[100px]">
+                    <div className="bg-[#1A1A1A] border border-[#333] px-3 py-2 rounded min-w-[80px]">
                         <span className="text-xl font-mono font-bold text-white">{bestScore}</span>
                     </div>
                  </div>
@@ -354,14 +359,14 @@ export default function App() {
                  <div className="flex gap-1 ml-auto">
                     <button 
                         onClick={startNewGame}
-                        className="bg-[#1A1A1A] hover:bg-[#252525] border border-[#333] text-white w-12 h-12 rounded flex items-center justify-center transition-colors"
+                        className="bg-[#1A1A1A] hover:bg-[#252525] border border-[#333] text-white w-10 h-10 rounded flex items-center justify-center transition-colors"
                         title="Reset"
                     >
                         <RestartIcon />
                     </button>
                     <button 
                         onClick={() => setShowLeaderboard(true)}
-                        className="bg-[#0052FF] hover:bg-[#004ad9] text-white w-12 h-12 rounded flex items-center justify-center transition-colors shadow-[0_0_15px_rgba(0,82,255,0.3)]"
+                        className="bg-[#0052FF] hover:bg-[#004ad9] text-white w-10 h-10 rounded flex items-center justify-center transition-colors shadow-[0_0_15px_rgba(0,82,255,0.3)]"
                         title="Leaderboard"
                     >
                         <TrophyIcon />
@@ -370,11 +375,15 @@ export default function App() {
             </div>
         </div>
 
-        {/* GAME BOARD */}
+        {/* GAME BOARD AREA */}
         <div className="flex-grow flex flex-col justify-center relative">
+          
+          {/* 
+             Badges: Now aligned with grid columns via CSS Grid in component 
+          */}
           <AchievementBadges score={bestScore} />
           
-          <div className="mt-4 relative">
+          <div className="mt-3 relative w-full">
              <Board grid={grid} />
 
              {/* Game Over / Win Modal */}
