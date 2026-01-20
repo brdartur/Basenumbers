@@ -5,7 +5,7 @@ import Board from './components/Board';
 import AchievementBadges from './components/AchievementBadges';
 import WalletConnect from './components/WalletConnect';
 import LeaderboardModal from './components/LeaderboardModal';
-import { COLORS, BADGE_LEVELS, REFERRALS_REQUIRED_FOR_UNDO } from './constants';
+import { COLORS, BADGE_LEVELS } from './constants';
 import { CONTRACT_ADDRESS, encodeSubmitScore } from './services/smartContract';
 import { playMoveSound, playMergeSound, playWinSound, playGameOverSound, triggerHaptic } from './services/audio';
 
@@ -27,24 +27,6 @@ const TrophyIcon = () => (
     <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
     <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
   </svg>
-);
-
-const UndoIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 7v6h6"></path>
-    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-  </svg>
-);
-
-const LockIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-  </svg>
-);
-
-const ShareIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
 );
 
 const SoundOnIcon = () => (
@@ -91,14 +73,6 @@ export default function App() {
   const [bestScore, setBestScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [gameWon, setGameWon] = useState(false);
-  
-  // Undo Logic State
-  const [prevGrid, setPrevGrid] = useState<Grid | null>(null);
-  const [prevScore, setPrevScore] = useState<number | null>(null);
-  
-  // Referral / Unlocks State
-  const [inviteCount, setInviteCount] = useState(0);
-
   const isInitialized = useRef(false);
   
   // Settings State
@@ -122,10 +96,6 @@ export default function App() {
     const savedBest = localStorage.getItem('base2048-best');
     if (savedBest) setBestScore(parseInt(savedBest));
 
-    // Load Invite Count
-    const savedInvites = localStorage.getItem('base2048-invites');
-    if (savedInvites) setInviteCount(parseInt(savedInvites));
-
     // Load Game State
     const savedState = localStorage.getItem('base2048-state');
     let loaded = false;
@@ -138,9 +108,6 @@ export default function App() {
           setScore(parsedState.score || 0);
           setGameOver(parsedState.gameOver || false);
           setGameWon(parsedState.gameWon || false);
-          // Restore undo state if available
-          if (parsedState.prevGrid) setPrevGrid(parsedState.prevGrid);
-          if (parsedState.prevScore !== undefined) setPrevScore(parsedState.prevScore);
           loaded = true;
         }
       } catch (e) {
@@ -171,12 +138,10 @@ export default function App() {
       grid,
       score,
       gameOver,
-      gameWon,
-      prevGrid,
-      prevScore
+      gameWon
     };
     localStorage.setItem('base2048-state', JSON.stringify(gameState));
-  }, [grid, score, gameOver, gameWon, prevGrid, prevScore]);
+  }, [grid, score, gameOver, gameWon]);
 
   const startNewGame = useCallback(() => {
     let newGrid = getEmptyGrid();
@@ -187,24 +152,14 @@ export default function App() {
     setGameOver(false);
     setGameWon(false);
     setTxHash(null);
-    setPrevGrid(null); // Clear undo history on new game
-    setPrevScore(null);
   }, []);
 
   const executeMove = useCallback((direction: Direction) => {
     if (gameOver || showLeaderboard) return;
 
-    // Save state BEFORE moving
-    const currentGridState = grid.map(row => [...row]); // Deep copy
-    const currentScoreState = score;
-
     const result = move(grid, direction);
     
     if (result.moved) {
-      // Push to history
-      setPrevGrid(currentGridState);
-      setPrevScore(currentScoreState);
-
       if (result.score > 0) {
         if (soundEnabled) playMergeSound();
         triggerHaptic('medium');
@@ -238,59 +193,6 @@ export default function App() {
       }
     }
   }, [grid, score, bestScore, gameOver, gameWon, showLeaderboard, soundEnabled]);
-
-  const handleUndo = () => {
-    if (prevGrid && prevScore !== null && !gameOver && inviteCount >= REFERRALS_REQUIRED_FOR_UNDO) {
-        setGrid(prevGrid);
-        setScore(prevScore);
-        setPrevGrid(null); // Can only undo once per move
-        setPrevScore(null);
-        triggerHaptic('medium');
-    }
-  };
-
-  // Mock Invite Mechanism
-  const handleInvite = async () => {
-    // 1. Copy link
-    const text = `🟦 Base 2048\n🏆 Can you beat my score: ${bestScore}?\n\nPlay on Base!`;
-    const url = window.location.origin + window.location.pathname; // Clean URL
-    const shareData = {
-        title: 'Base 2048',
-        text: text,
-        url: url
-    };
-
-    let success = false;
-
-    // Try native share first, fall back to clipboard
-    try {
-        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-            await navigator.share(shareData);
-            success = true;
-        } else {
-             throw new Error("Share API not supported");
-        }
-    } catch (err) {
-        console.warn("Native share failed/cancelled, falling back to clipboard", err);
-        try {
-            await navigator.clipboard.writeText(`${text} ${url}`);
-            alert("Link copied to clipboard! Share it with friends.");
-            success = true;
-        } catch (clipErr) {
-             console.error("Clipboard failed", clipErr);
-        }
-    }
-
-    // 2. Increment Count (Demo Logic)
-    if (success) {
-        const newCount = inviteCount + 1;
-        if (inviteCount < REFERRALS_REQUIRED_FOR_UNDO) {
-            setInviteCount(newCount);
-            localStorage.setItem('base2048-invites', newCount.toString());
-            triggerHaptic('success');
-        }
-    }
-  };
 
   // Wallet Features
   const mintScore = async () => {
@@ -397,9 +299,6 @@ export default function App() {
     touchStart.current = null;
   };
 
-  const undoUnlocked = inviteCount >= REFERRALS_REQUIRED_FOR_UNDO;
-  const progressPercent = Math.min(100, (inviteCount / REFERRALS_REQUIRED_FOR_UNDO) * 100);
-
   return (
     <div 
       className="min-h-screen w-full flex flex-col items-center p-4 relative overflow-hidden font-sans"
@@ -455,23 +354,6 @@ export default function App() {
                  </div>
 
                  <div className="flex gap-1 ml-auto">
-                    {/* UNDO BUTTON */}
-                    <button 
-                        onClick={handleUndo}
-                        disabled={!undoUnlocked || !prevGrid || gameOver}
-                        className={`
-                            w-10 h-10 rounded flex items-center justify-center transition-all relative overflow-hidden
-                            ${undoUnlocked 
-                                ? 'bg-amber-400 text-black hover:bg-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.4)] cursor-pointer' 
-                                : 'bg-[#1A1A1A] border border-[#333] text-gray-600 cursor-not-allowed'
-                            }
-                            ${(!prevGrid && undoUnlocked) ? 'opacity-50 cursor-default' : ''}
-                        `}
-                        title={undoUnlocked ? "Undo Move" : `Invite ${REFERRALS_REQUIRED_FOR_UNDO - inviteCount} more friends to unlock`}
-                    >
-                         {undoUnlocked ? <UndoIcon /> : <LockIcon />}
-                    </button>
-
                     <button 
                         onClick={startNewGame}
                         className="bg-[#1A1A1A] hover:bg-[#252525] border border-[#333] text-white w-10 h-10 rounded flex items-center justify-center transition-colors"
@@ -560,44 +442,9 @@ export default function App() {
           </div>
         </div>
 
-        {/* Footer info: QUEST SECTION */}
-        <div className="flex flex-col items-center justify-center mt-auto gap-3 w-full">
-             
-             {/* Invite Quest Card */}
-             {!undoUnlocked ? (
-               <div className="w-full bg-[#111] border border-[#222] rounded-lg p-3 flex flex-col gap-2 relative overflow-hidden">
-                  <div className="flex justify-between items-center z-10">
-                     <div className="flex flex-col">
-                        <span className="text-xs font-bold text-white uppercase tracking-wider">Unlock Undo</span>
-                        <span className="text-[10px] text-gray-400">Invite {REFERRALS_REQUIRED_FOR_UNDO - inviteCount} more friends</span>
-                     </div>
-                     <button 
-                        onClick={handleInvite}
-                        className="bg-[#0052FF] hover:bg-[#004ad9] text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors"
-                     >
-                        <ShareIcon /> Invite
-                     </button>
-                  </div>
-                  
-                  {/* Progress Bar */}
-                  <div className="w-full h-1 bg-[#222] rounded-full overflow-hidden z-10">
-                     <div 
-                       className="h-full bg-amber-400 transition-all duration-500" 
-                       style={{ width: `${progressPercent}%` }}
-                     />
-                  </div>
-
-                  {/* Subtle Background Glow */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-               </div>
-             ) : (
-               <div className="w-full bg-amber-900/20 border border-amber-500/30 rounded-lg p-3 flex items-center justify-center gap-2 animate-fade-in">
-                  <UndoIcon />
-                  <span className="text-amber-400 text-xs font-bold uppercase tracking-wider">Undo Unlocked</span>
-               </div>
-             )}
-
-             <div className="text-center text-[10px] text-gray-600 font-mono mt-1">
+        {/* Footer info */}
+        <div className="flex flex-col items-center justify-center mt-auto gap-1">
+             <div className="text-center text-[10px] text-gray-600 font-mono">
                 BASE 2048
              </div>
         </div>
