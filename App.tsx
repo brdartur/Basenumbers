@@ -448,8 +448,14 @@ export default function App() {
         </div>
 
         {/* Footer info */}
-        <div className="text-center text-[10px] text-gray-600 font-mono mt-auto">
-             BASE 2048 • ONCHAIN SUMMER
+        <div className="flex flex-col items-center justify-center mt-auto gap-1">
+             <div className="text-center text-[10px] text-gray-600 font-mono">
+                BASE 2048 • ONCHAIN SUMMER
+             </div>
+             {/* Builder Code Display */}
+             <div className="text-[9px] text-[#0052FF] font-mono tracking-widest bg-blue-900/10 px-2 py-0.5 rounded border border-blue-900/20">
+                BUILDER CODE: bc_6ig77dw9
+             </div>
         </div>
       </div>
 
