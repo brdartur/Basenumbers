@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#0052FF" />
+    <title>Base 2048</title>
+    <meta name="description" content="Base Network 2048 Game" />
+    
+    <!-- PWA / Mini App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Open Graph for sharing on Farcaster/Base -->
+    <meta property="og:title" content="Base 2048" />
+    <meta property="og:description" content="Play 2048 on Base Network. Mint your high score!" />
+    <meta property="og:image" content="https://raw.githubusercontent.com/base-org/brand-kit/master/logo/symbol/Base_Symbol_Blue.png" />
+
+    <!-- Using CDN for Tailwind for simplicity in this setup, normally would be in postcss -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #0F1115; /* Base Dark Background */
+        color: white;
+        overscroll-behavior: none;
+      }
+      
+      /* Custom scrollbar for webkit */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1e1e1e;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #0052FF;
+        border-radius: 3px;
+      }
+
+      /* Prevent pull-to-refresh on mobile */
+      html, body {
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <!-- Vite Entry Point -->
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

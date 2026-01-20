@@ -1,0 +1,18 @@
+{
+  "name": "Base 2048 Network",
+  "short_name": "Base2048",
+  "description": "Join the numbers to reach the 2048 tile on Base Network!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F1115",
+  "theme_color": "#0052FF",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/base-org/brand-kit/master/logo/symbol/Base_Symbol_Blue.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
