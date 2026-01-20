@@ -109,7 +109,13 @@ const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect, onDisconnect }
       }
 
     } catch (err: any) {
-      console.error("Connection failed", err);
+      // Clean up error logging
+      if (err.message === "No Wallet" || err.code === 4001 /* User rejected */) {
+         console.warn("Wallet connection:", err.message);
+      } else {
+         console.error("Connection failed", err);
+      }
+
       if (err.message === "No Wallet") {
         triggerError("Install Wallet");
       } else {
