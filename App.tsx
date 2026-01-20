@@ -39,11 +39,8 @@ const SoundOffIcon = () => (
 
 const BaseLogo = () => (
   <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <mask id="base-logo-mask">
-      <circle cx="50" cy="50" r="50" fill="white"/>
-    </mask>
-    <circle cx="50" cy="50" r="50" fill="#0052FF"/>
-    <rect x="-10" y="42" width="75" height="16" fill="white" mask="url(#base-logo-mask)"/>
+    <rect width="100" height="100" rx="20" fill="#0052FF"/>
+    <path d="M20 50h60" stroke="white" strokeWidth="16" strokeLinecap="round" transform="translate(10, 0)" />
   </svg>
 );
 
@@ -53,17 +50,18 @@ const Ticker = () => (
       <span className="mx-4">Build on Base</span> • 
       <span className="mx-4">Stay Based</span> • 
       <span className="mx-4">Mint Your Score</span> • 
-      <span className="mx-4">Onchain Summer</span> • 
       <span className="mx-4">Based 2048</span> •
       <span className="mx-4">Build on Base</span> • 
       <span className="mx-4">Stay Based</span> • 
       <span className="mx-4">Mint Your Score</span> • 
-      <span className="mx-4">Onchain Summer</span> • 
       <span className="mx-4">Based 2048</span> •
       <span className="mx-4">Build on Base</span> • 
       <span className="mx-4">Stay Based</span> • 
       <span className="mx-4">Mint Your Score</span> • 
-      <span className="mx-4">Onchain Summer</span> • 
+      <span className="mx-4">Based 2048</span> •
+      <span className="mx-4">Build on Base</span> • 
+      <span className="mx-4">Stay Based</span> • 
+      <span className="mx-4">Mint Your Score</span> • 
       <span className="mx-4">Based 2048</span>
     </div>
   </div>
@@ -314,7 +312,6 @@ export default function App() {
       {/* 
         Main Container:
         Restricted to 360px to exactly match the board width + layout tightness.
-        This ensures headers, badges, and the board share the exact same vertical guide lines.
       */}
       <div className="w-full max-w-[360px] z-10 flex flex-col h-full justify-between pb-12">
         
@@ -378,9 +375,6 @@ export default function App() {
         {/* GAME BOARD AREA */}
         <div className="flex-grow flex flex-col justify-center relative">
           
-          {/* 
-             Badges: Now aligned with grid columns via CSS Grid in component 
-          */}
           <AchievementBadges score={bestScore} />
           
           <div className="mt-3 relative w-full">
@@ -388,21 +382,21 @@ export default function App() {
 
              {/* Game Over / Win Modal */}
             {(gameOver || (gameWon && !grid.flat().includes(0) && !checkGameOver(grid))) && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 rounded-xl backdrop-blur-sm p-6 text-center animate-fade-in border border-[#333]">
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/95 rounded-xl backdrop-blur-md p-6 text-center animate-fade-in border border-[#333]">
                     <div className="mb-6 transform scale-110">
                         {gameWon ? (
-                            <div className="text-5xl mb-2">🎉</div>
+                            <div className="text-6xl mb-4 animate-bounce">🎉</div>
                         ) : (
-                            <div className="text-5xl mb-2">💀</div>
+                            <div className="text-6xl mb-4">💀</div>
                         )}
-                        <h2 className="text-3xl font-black italic uppercase text-white">
+                        <h2 className="text-3xl font-black italic uppercase text-white tracking-wider">
                             {gameWon ? 'Based Win' : 'Game Over'}
                         </h2>
                     </div>
 
                     <div className="bg-[#111] border border-[#222] p-4 rounded-lg w-full mb-6">
                         <span className="text-gray-500 text-xs uppercase font-bold tracking-widest block mb-1">Final Score</span>
-                        <span className="text-4xl font-mono font-bold text-[#0052FF]">{score}</span>
+                        <span className="text-5xl font-mono font-bold text-[#0052FF] tracking-tighter">{score}</span>
                     </div>
                     
                     <div className="flex flex-col gap-3 w-full">
@@ -427,8 +421,9 @@ export default function App() {
                                 <button 
                                     onClick={mintScore}
                                     disabled={isVerifying}
-                                    className="w-full py-3 bg-[#0052FF] text-white font-bold uppercase tracking-wider hover:bg-[#004ad9] rounded shadow-[0_0_20px_rgba(0,82,255,0.4)]"
+                                    className="w-full py-3 bg-[#0052FF] text-white font-bold uppercase tracking-wider hover:bg-[#004ad9] rounded shadow-[0_0_20px_rgba(0,82,255,0.4)] relative overflow-hidden group"
                                 >
+                                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                                     {isVerifying ? 'Minting...' : 'Mint High Score'}
                                 </button>
                             )
@@ -450,7 +445,7 @@ export default function App() {
         {/* Footer info */}
         <div className="flex flex-col items-center justify-center mt-auto gap-1">
              <div className="text-center text-[10px] text-gray-600 font-mono">
-                BASE 2048 • ONCHAIN SUMMER
+                BASE 2048
              </div>
              {/* Builder Code Display */}
              <div className="text-[9px] text-[#0052FF] font-mono tracking-widest bg-blue-900/10 px-2 py-0.5 rounded border border-blue-900/20">
