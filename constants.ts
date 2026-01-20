@@ -1,28 +1,28 @@
 // Base Network Brand Colors
 export const COLORS = {
-  background: '#0F1115',
-  surface: '#1E2025',
+  background: '#000000', // Pure Black for higher contrast like gmove
+  surface: '#111111',
   primary: '#0052FF', // Base Blue
   primaryHover: '#004ad9',
   text: '#FFFFFF',
-  textSecondary: '#8A919E',
-  gridBackground: '#2B303B',
-  gridEmptyCell: '#3C4250',
+  textSecondary: '#9CA3AF',
+  gridBackground: '#1A1A1A',
+  gridEmptyCell: '#262626',
 };
 
 // Tile colors mapping (Value -> Tailwind classes or Hex)
-// We use a blue gradient scale to match Base aesthetics
+// We use a high contrast blue gradient scale
 export const TILE_COLORS: Record<number, { bg: string; text: string; shadow: string }> = {
-  2: { bg: '#E3F2FD', text: '#0052FF', shadow: '0 0 10px rgba(227, 242, 253, 0.2)' },
-  4: { bg: '#BBDEFB', text: '#0052FF', shadow: '0 0 10px rgba(187, 222, 251, 0.3)' },
-  8: { bg: '#90CAF9', text: '#0F1115', shadow: '0 0 15px rgba(144, 202, 249, 0.4)' },
-  16: { bg: '#64B5F6', text: '#0F1115', shadow: '0 0 15px rgba(100, 181, 246, 0.5)' },
-  32: { bg: '#42A5F5', text: '#FFFFFF', shadow: '0 0 20px rgba(66, 165, 245, 0.6)' },
-  64: { bg: '#2196F3', text: '#FFFFFF', shadow: '0 0 20px rgba(33, 150, 243, 0.7)' },
-  128: { bg: '#1E88E5', text: '#FFFFFF', shadow: '0 0 25px rgba(30, 136, 229, 0.8)' },
-  256: { bg: '#1976D2', text: '#FFFFFF', shadow: '0 0 25px rgba(25, 118, 210, 0.9)' },
-  512: { bg: '#1565C0', text: '#FFFFFF', shadow: '0 0 30px rgba(21, 101, 192, 1)' },
-  1024: { bg: '#0D47A1', text: '#FFFFFF', shadow: '0 0 35px rgba(13, 71, 161, 1)' },
+  2: { bg: '#FFFFFF', text: '#000000', shadow: '0 0 0px transparent' },
+  4: { bg: '#E0E7FF', text: '#000000', shadow: '0 0 0px transparent' },
+  8: { bg: '#C7D2FE', text: '#000000', shadow: '0 0 0px transparent' },
+  16: { bg: '#A5B4FC', text: '#000000', shadow: '0 0 0px transparent' },
+  32: { bg: '#818CF8', text: '#FFFFFF', shadow: '0 0 10px rgba(129, 140, 248, 0.3)' },
+  64: { bg: '#6366F1', text: '#FFFFFF', shadow: '0 0 10px rgba(99, 102, 241, 0.4)' },
+  128: { bg: '#4F46E5', text: '#FFFFFF', shadow: '0 0 15px rgba(79, 70, 229, 0.5)' },
+  256: { bg: '#4338CA', text: '#FFFFFF', shadow: '0 0 20px rgba(67, 56, 202, 0.6)' },
+  512: { bg: '#3730A3', text: '#FFFFFF', shadow: '0 0 25px rgba(55, 48, 163, 0.7)' },
+  1024: { bg: '#312E81', text: '#FFFFFF', shadow: '0 0 30px rgba(49, 46, 129, 0.8)' },
   2048: { bg: '#0052FF', text: '#FFFFFF', shadow: '0 0 50px #0052FF' }, // The Base Goal
 };
 
@@ -30,8 +30,8 @@ export const GRID_SIZE = 4;
 export const WINNING_SCORE = 2048;
 
 export const BADGE_LEVELS = [
-  { id: 1, score: 5000, label: 'Scout', color: '#CD7F32' },   // Bronze
-  { id: 2, score: 10000, label: 'Expert', color: '#C0C0C0' }, // Silver
-  { id: 3, score: 15000, label: 'Master', color: '#FFD700' }, // Gold
-  { id: 4, score: 20000, label: 'Legend', color: '#0052FF' }  // Base Blue
+  { id: 1, score: 1000, label: 'Based', color: '#FFFFFF' },   
+  { id: 2, score: 5000, label: 'Builder', color: '#0052FF' }, 
+  { id: 3, score: 10000, label: 'Superchain', color: '#00D2FF' }, 
+  { id: 4, score: 20000, label: 'Legend', color: '#FFD700' }  
 ];
