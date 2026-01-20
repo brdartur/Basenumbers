@@ -76,19 +76,21 @@ const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect, onDisconnect }
       if (onConnect) onConnect(userAddress);
 
       // Attempt to Switch to Base Mainnet
+      // Docs: https://docs.base.org/base-chain/quickstart/connecting-to-base
       try {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x2105' }], // 8453 (Base)
+          params: [{ chainId: '0x2105' }], // 8453 (Base Mainnet)
         });
       } catch (switchError: any) {
+        // This error code indicates that the chain has not been added to MetaMask.
         if (switchError.code === 4902) {
           try {
             await window.ethereum.request({
               method: 'wallet_addEthereumChain',
               params: [
                 {
-                  chainId: '0x2105',
+                  chainId: '0x2105', // 8453
                   chainName: 'Base',
                   rpcUrls: ['https://mainnet.base.org'],
                   blockExplorerUrls: ['https://basescan.org'],
