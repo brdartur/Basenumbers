@@ -319,7 +319,9 @@ export default function App() {
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                     <BaseLogo />
-                    <span className="font-black text-2xl tracking-tight italic">Base 2048</span>
+                    <span className="font-black text-2xl tracking-tight italic">
+                      Base <span className="text-[#0052FF]">2048</span>
+                    </span>
                 </div>
                 
                 <div className="flex items-center gap-2">
