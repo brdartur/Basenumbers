@@ -28,6 +28,7 @@ export const TILE_COLORS: Record<number, { bg: string; text: string; shadow: str
 
 export const GRID_SIZE = 4;
 export const WINNING_SCORE = 2048;
+export const REFERRALS_REQUIRED_FOR_UNDO = 3;
 
 export const BADGE_LEVELS = [
   { id: 1, score: 1000, label: 'Based', color: '#FFFFFF' },   
