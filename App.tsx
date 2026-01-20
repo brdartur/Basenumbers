@@ -221,48 +221,67 @@ export default function App() {
     if (!walletAddress || !window.ethereum) return;
     setIsVerifying(true);
     setTxHash(null);
+    
+    let hash = null;
+    const scoreData = encodeSubmitScore(bestScore);
+
     try {
-      let transactionParameters;
-
+      // STRATEGY: Try Main Contract first -> If fail, Fallback to Self-Send
+      
       if (CONTRACT_ADDRESS) {
-        // NOTE: We removed the pre-flight check logic here.
-        // We now force the transaction to proceed regardless of whether it will fail or succeed on-chain,
-        // allowing the user to spend gas/farm airdrops as requested.
-
-        const data = encodeSubmitScore(bestScore);
-        transactionParameters = {
-          to: CONTRACT_ADDRESS,
-          from: walletAddress,
-          data: data,
-        };
+        try {
+          console.log("Attempting to send to contract:", CONTRACT_ADDRESS);
+          hash = await window.ethereum.request({
+            method: 'eth_sendTransaction',
+            params: [{
+              to: CONTRACT_ADDRESS,
+              from: walletAddress,
+              data: scoreData,
+            }],
+          });
+        } catch (contractError: any) {
+          console.warn("Contract transaction failed (likely revert or wrong network). Falling back to self-send.", contractError);
+          // If the user rejected the specific contract tx, they likely won't want the fallback either,
+          // but usually error 4001 is user rejection. If it's another error (RPC error), we fallback.
+          if (contractError?.code === 4001) {
+            throw contractError; // Rethrow if user explicitly rejected
+          }
+          
+          // FALLBACK: Send 0 ETH to self with data
+          hash = await window.ethereum.request({
+            method: 'eth_sendTransaction',
+            params: [{
+              to: walletAddress, // Send to self
+              from: walletAddress,
+              value: '0x0',
+              data: scoreData, // Embed score in data
+            }],
+          });
+        }
       } else {
-        transactionParameters = {
-          to: walletAddress,
-          from: walletAddress,
-          value: '0x00',
-          data: '0x64656d6f',
-        };
+        // No contract address configured -> Direct Self Send
+        hash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            to: walletAddress,
+            from: walletAddress,
+            value: '0x0',
+            data: scoreData,
+          }],
+        });
       }
 
-      const hash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [transactionParameters],
-      });
-      
-      setTxHash(hash);
-      if (soundEnabled) playWinSound();
-      
-      setTimeout(() => setShowLeaderboard(true), 2000);
+      if (hash) {
+        setTxHash(hash);
+        if (soundEnabled) playWinSound();
+        setTimeout(() => setShowLeaderboard(true), 2000);
+      }
       
     } catch (error: any) {
       console.error("Transaction failed", error);
       let msg = "Transaction failed.";
-      
       if (error?.code === 4001) {
          msg = "Transaction rejected by user.";
-      } else if (error?.message?.includes("reverted") || error?.data?.message?.includes("reverted")) {
-         // Even if it reverts, we don't show an aggressive error since the user expects gas spending
-         msg = "Transaction sent but reverted on-chain (Score might be too low). Gas was spent.";
       }
       alert(msg);
     } finally {
@@ -470,7 +489,7 @@ export default function App() {
                         disabled={isVerifying}
                         className="w-full px-4 py-3 rounded-full font-bold text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                       >
-                        {isVerifying ? 'Processing...' : CONTRACT_ADDRESS ? '🏆 Submit to Chain' : '🏆 Mint Score (Gas Only)'}
+                        {isVerifying ? 'Processing...' : '🏆 Mint Score (Start TX)'}
                       </button>
                     )}
                     
