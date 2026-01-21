@@ -1,7 +1,62 @@
+
 import React, { useEffect, useState } from 'react';
 import { BADGE_LEVELS } from '../constants';
 import { checkBadgeBalances, mintBadgeAction, NFT_CONTRACT_ADDRESS, fetchCurrentOnChainScore } from '../services/smartContract';
 import { playWinSound, triggerHaptic } from '../services/audio';
+
+// --- INLINE SVG ICONS TO PREVENT BROKEN IMAGES ---
+const BadgeIcon = ({ id, color, locked }: { id: number, color: string, locked: boolean }) => {
+  const strokeColor = locked ? '#444' : color;
+  
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+       {/* Background Circle */}
+       <circle cx="256" cy="256" r="240" fill={locked ? '#111' : '#050505'} stroke={strokeColor} strokeWidth="12" />
+       
+       {/* Inner Glow Circle */}
+       {!locked && <circle cx="256" cy="256" r="200" fill={color} fillOpacity="0.1" />}
+
+       {/* Icon Content */}
+       <g transform="translate(106, 106) scale(12.5)">
+          {/* Badge 1: Shield/Trophy */}
+          {id === 1 && (
+             <path d="M12 2L3 7V12C3 17.52 6.92 22.74 12 24C17.08 22.74 21 17.52 21 12V7L12 2Z" fill={locked ? '#333' : color} stroke={strokeColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          )}
+          
+          {/* Badge 2: Star/Star (Builder) */}
+          {id === 2 && (
+             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill={locked ? '#333' : color} stroke={strokeColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          )}
+
+          {/* Badge 3: Superchain Link */}
+          {id === 3 && (
+             <g>
+                <path d="M2 4L12 2L22 4V10C22 10 22 18 12 22C2 18 2 10 2 10V4Z" fill={locked ? '#333' : color} stroke={strokeColor} strokeWidth="1.5" strokeLinejoin="round"/>
+                <path d="M9 12L12 9L15 12" stroke={locked ? '#555' : '#fff'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+             </g>
+          )}
+
+          {/* Badge 4: Legend / Crown */}
+          {id === 4 && (
+             <g>
+                <path d="M6 2L3 6V20C3 21.1 3.9 22 5 22H19C20.1 22 21 21.1 21 20V6L18 2H6Z" fill={locked ? '#333' : color} stroke={strokeColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="3" fill={locked ? '#555' : 'white'} fillOpacity="0.5"/>
+             </g>
+          )}
+
+          {/* Badge 5: Giga Brain / Gem */}
+          {id === 5 && (
+             <g>
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke={strokeColor} strokeWidth="1.5" strokeLinejoin="round" fill={locked ? '#333' : color}/>
+                <path d="M2 17L12 22L22 17" stroke={strokeColor} strokeWidth="1.5" strokeLinejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke={strokeColor} strokeWidth="1.5" strokeLinejoin="round"/>
+             </g>
+          )}
+       </g>
+    </svg>
+  );
+};
+
 
 interface AchievementBadgesProps {
   score: number;
@@ -30,7 +85,7 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ score, walletAddr
         }
     };
     checkBalances();
-  }, [walletAddress, score]); // Re-check when local score changes (though on-chain needs minting first)
+  }, [walletAddress, score]); // Re-check when local score changes
 
   const handleMint = async (badgeId: number, badgeScore: number) => {
     if (!walletAddress) {
@@ -39,7 +94,7 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ score, walletAddr
     }
 
     if (onChainScore < badgeScore) {
-        alert(`Your score on the blockchain is ${onChainScore}. You need ${badgeScore} to mint this NFT.\n\nPlease click 'MINT HIGH SCORE' in the game over screen (or restart the game) to save your current score to the blockchain first!`);
+        alert(`Your score on the blockchain is ${onChainScore}. You need ${badgeScore} to mint this NFT.\n\nPlease click 'MINT HIGH SCORE' in the game over screen to save your score to the blockchain first!`);
         return;
     }
 
@@ -64,7 +119,6 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ score, walletAddr
 
     } catch (e: any) {
         console.error("Mint failed", e);
-        // Only alert if it's not a user rejection
         if (e?.code !== 4001) {
              alert("Minting failed. Check if you already own this badge or have sufficient gas.");
         }
@@ -96,12 +150,8 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ score, walletAddr
                     ${isMinted ? 'scale-110' : 'hover:scale-105'}
                 `}
               >
-                  {/* Use local SVG assets */}
-                  <img 
-                    src={`/badges/${badge.id}.svg`} 
-                    alt={badge.label}
-                    className="w-full h-full object-contain drop-shadow-xl"
-                  />
+                  {/* Inline SVG Replacement */}
+                  <BadgeIcon id={badge.id} color={badge.color} locked={!unlocked} />
                   
                   {/* Owned checkmark */}
                   {isMinted && (
