@@ -17,10 +17,13 @@ const LEADERBOARD_ABI = [
 ];
 
 // ABI for Badges (NFT)
+// Added setURI and setBaseURI to support updating metadata
 const NFT_ABI = [
     "function mintBadge(uint256 id)",
     "function balanceOf(address account, uint256 id) view returns (uint256)",
-    "function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])"
+    "function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])",
+    "function setURI(string newuri)",
+    "function setBaseURI(string baseURI)"
 ];
 
 export const CONTRACT_INTERFACE = new ethers.Interface(LEADERBOARD_ABI);
@@ -140,4 +143,24 @@ export const mintBadgeAction = async (ethereum: any, address: string, badgeId: n
     
     const tx = await contract.mintBadge(badgeId);
     return tx;
+};
+
+// --- ADMIN FUNCTION TO SET URI ---
+export const setContractURI = async (ethereum: any, newUri: string) => {
+    if (!NFT_CONTRACT_ADDRESS) throw new Error("Contract not configured");
+    
+    const provider = new ethers.BrowserProvider(ethereum);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(NFT_CONTRACT_ADDRESS, NFT_ABI, signer);
+    
+    try {
+        // Try standard ERC1155 setURI first
+        const tx = await contract.setURI(newUri);
+        return tx;
+    } catch (e) {
+        // Fallback to setBaseURI if contract uses custom naming
+        console.warn("setURI failed, trying setBaseURI", e);
+        const tx = await contract.setBaseURI(newUri);
+        return tx;
+    }
 };
