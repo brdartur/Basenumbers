@@ -1,48 +1,19 @@
-// Configuration
-// ------------------------------------------------------------------
-// 1. В REMIX (remix.ethereum.org):
-//    - Создай файл `contracts/Base2048Leaderboard.sol`.
-//    - Вставь туда код контракта лидерборда.
-//    - Скомпилируй (версия компилятора 0.8.20+).
-//    - Выбери Environment: "Injected Provider - MetaMask".
-//    - Нажми Deploy (убедись, что ты в сети Base или Base Sepolia).
-//
-// 2. ПОСЛЕ ДЕПЛОЯ:
-//    - Скопируй адрес контракта (Deployed Contracts -> Copy Address).
-//    - Вставь его в переменную CONTRACT_ADDRESS ниже.
-// ------------------------------------------------------------------
+import { ethers } from 'ethers';
 
-// Адрес лидерборда (оставь как есть или замени на свой)
-export const CONTRACT_ADDRESS = "0xb995bcaD89CE57734111481d1785016555f4e6fa"; 
+// ------------------------------------------------------------------
+// CONFIGURATION
+// ------------------------------------------------------------------
+export const CONTRACT_ADDRESS = "0xb995bcaD89CE57734111481d1785016555f4e6fa"; // Ваш новый адрес
 
-// ABI for Leaderboard (Submit Score)
-export const LEADERBOARD_ABI = [
-  {
-    "inputs": [{ "internalType": "uint256", "name": "score", "type": "uint256" }],
-    "name": "submitScore",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getLeaderboard",
-    "outputs": [
-      {
-        "components": [
-          { "internalType": "address", "name": "wallet", "type": "address" },
-          { "internalType": "uint256", "name": "score", "type": "uint256" },
-          { "internalType": "uint256", "name": "timestamp", "type": "uint256" }
-        ],
-        "internalType": "struct Base2048Leaderboard.PlayerScore[]",
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  }
+// Using ethers Interface for reliable encoding/decoding of structs
+const ABI = [
+  "function submitScore(uint256 score)",
+  "function bestScores(address) view returns (uint256)",
+  // The new view function that returns [User, ...Others]
+  "function getLeaderboardView(address player) view returns (tuple(address wallet, uint256 score, uint256 timestamp)[])"
 ];
+
+export const CONTRACT_INTERFACE = new ethers.Interface(ABI);
 
 export interface ChainLeader {
   address: string;
@@ -52,87 +23,76 @@ export interface ChainLeader {
   verified: boolean;
 }
 
-// Helper to encode Submit Score Data
+// ------------------------------------------------------------------
+// HELPERS
+// ------------------------------------------------------------------
+
 export const encodeSubmitScore = (score: number): string => {
-    // selector: submitScore(uint256) -> 0x9e122247
-    const selector = "0x9e122247"; 
-    const scoreHex = score.toString(16).padStart(64, '0');
-    return selector + scoreHex;
+  return CONTRACT_INTERFACE.encodeFunctionData("submitScore", [score]);
 };
 
 /**
- * Robust Raw ABI Decoder for PlayerScore[] struct
+ * Fetches the current best score for a wallet directly from the blockchain.
+ * This is used to prevent "Execution Reverted" errors by checking if the
+ * new score is actually higher before sending the transaction.
  */
-const decodeLeaderboard = (hexData: string): ChainLeader[] => {
+export const fetchCurrentOnChainScore = async (ethereum: any, address: string): Promise<number> => {
+    if (!CONTRACT_ADDRESS || !address) return 0;
+    
     try {
-        let cleanHex = hexData.startsWith("0x") ? hexData.slice(2) : hexData;
-        if (cleanHex.length === 0) return [];
-
-        const offsetHex = cleanHex.slice(0, 64);
-        const offsetBytes = parseInt(offsetHex, 16);
-        const offsetChars = offsetBytes * 2;
-
-        if (offsetChars >= cleanHex.length) return [];
-
-        const lengthHex = cleanHex.slice(offsetChars, offsetChars + 64);
-        const length = parseInt(lengthHex, 16);
-
-        if (isNaN(length) || length === 0) return [];
-        const safeLength = Math.min(length, 50); 
-
-        const leaders: ChainLeader[] = [];
-        let pointer = offsetChars + 64; 
-        const wordLength = 64; 
-
-        for (let i = 0; i < safeLength; i++) {
-            if (pointer + (wordLength * 3) > cleanHex.length) break;
-
-            const addrChunk = cleanHex.substring(pointer, pointer + wordLength);
-            const address = "0x" + addrChunk.slice(24);
-            
-            const scoreChunk = cleanHex.substring(pointer + wordLength, pointer + (wordLength * 2));
-            const score = parseInt(scoreChunk, 16);
-            
-            const timeChunk = cleanHex.substring(pointer + (wordLength * 2), pointer + (wordLength * 3));
-            const timestamp = parseInt(timeChunk, 16);
-
-            leaders.push({
-                address: address,
-                name: `${address.slice(0, 6)}...${address.slice(-4)}`,
-                score: score || 0,
-                timestamp: timestamp || 0,
-                verified: true
-            });
-
-            pointer += (wordLength * 3);
-        }
-
-        return leaders.sort((a, b) => b.score - a.score);
-
+        const provider = new ethers.BrowserProvider(ethereum);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+        const scoreBigInt = await contract.bestScores(address);
+        return Number(scoreBigInt);
     } catch (e) {
-        console.error("Decoder error:", e);
-        return [];
+        console.warn("Failed to fetch best score:", e);
+        return 0;
     }
 };
 
-export const fetchChainLeaderboard = async (ethereum: any): Promise<ChainLeader[] | null> => {
-    if (!CONTRACT_ADDRESS || !ethereum) return null;
+/**
+ * Fetches the leaderboard using the optimized `getLeaderboardView`.
+ * Returns a sorted array of leaders.
+ */
+export const fetchChainLeaderboard = async (ethereum: any, userAddress?: string): Promise<ChainLeader[]> => {
+    if (!CONTRACT_ADDRESS) return [];
 
     try {
-        const data = "0x3d06941d"; // getLeaderboard()
-        const result = await ethereum.request({
-            method: 'eth_call',
-            params: [{
-                to: CONTRACT_ADDRESS,
-                data: data
-            }, 'latest']
-        });
+        // If no user address is provided, use the zero address just to get the list
+        // (The contract requires an address argument)
+        const targetAddr = userAddress || "0x0000000000000000000000000000000000000000";
         
-        if (!result || result === "0x") return [];
+        const provider = new ethers.BrowserProvider(ethereum);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
-        return decodeLeaderboard(result);
+        // Call the view function
+        const rawData = await contract.getLeaderboardView(targetAddr);
+        
+        // rawData is an array of structs (Result object in ethers v6)
+        // rawData[0] is always the `targetAddr` (the user)
+        // rawData[1...] are the other players
+        
+        // Convert to our format
+        const leaders: ChainLeader[] = rawData.map((item: any) => ({
+            address: item.wallet,
+            name: `${item.wallet.substring(0, 6)}...${item.wallet.substring(38)}`,
+            score: Number(item.score),
+            timestamp: Number(item.timestamp),
+            verified: true
+        }));
+
+        // Filter out empty records (score 0 and address 0)
+        // Except if it's the specific user checking their own stats
+        const filtered = leaders.filter(l => l.score > 0 || l.address !== "0x0000000000000000000000000000000000000000");
+
+        // Client-side Sorting (Descending)
+        // We do this here to save Gas on the blockchain
+        filtered.sort((a, b) => b.score - a.score);
+
+        return filtered;
+
     } catch (e) {
         console.error("Failed to fetch chain leaderboard", e);
-        return null;
+        return [];
     }
 };
