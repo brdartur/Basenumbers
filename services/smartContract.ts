@@ -63,7 +63,8 @@ export const fetchChainLeaderboard = async (ethereum: any, userAddress?: string)
         const contract = new ethers.Contract(CONTRACT_ADDRESS, LEADERBOARD_ABI, provider);
         const rawData = await contract.getLeaderboardView(targetAddr);
         
-        const leaders: ChainLeader[] = rawData.map((item: any) => ({
+        // Map raw data to clean objects
+        const rawLeaders: ChainLeader[] = rawData.map((item: any) => ({
             address: item.wallet,
             name: `${item.wallet.substring(0, 6)}...${item.wallet.substring(38)}`,
             score: Number(item.score),
@@ -71,8 +72,32 @@ export const fetchChainLeaderboard = async (ethereum: any, userAddress?: string)
             verified: true
         }));
 
-        const filtered = leaders.filter(l => l.score > 0 || l.address !== "0x0000000000000000000000000000000000000000");
+        // 1. Filter out empty/zero entries
+        // 2. DEDUPLICATION: Use a Map to keep only the highest score per address
+        const uniqueLeadersMap = new Map<string, ChainLeader>();
+
+        rawLeaders.forEach(leader => {
+            const addrLower = leader.address.toLowerCase();
+            // Skip zero address or zero score
+            if (addrLower === "0x0000000000000000000000000000000000000000" && leader.score === 0) return;
+
+            if (!uniqueLeadersMap.has(addrLower)) {
+                uniqueLeadersMap.set(addrLower, leader);
+            } else {
+                // If we have a duplicate address, keep the one with the higher score
+                const existing = uniqueLeadersMap.get(addrLower)!;
+                if (leader.score > existing.score) {
+                    uniqueLeadersMap.set(addrLower, leader);
+                }
+            }
+        });
+
+        // Convert back to array
+        const filtered = Array.from(uniqueLeadersMap.values());
+
+        // 3. Sort Descending by Score
         filtered.sort((a, b) => b.score - a.score);
+
         return filtered;
     } catch (e) {
         console.error("Failed to fetch chain leaderboard", e);
