@@ -8,58 +8,6 @@ interface AchievementBadgesProps {
   walletAddress?: string | null;
 }
 
-// SVG Components for each badge level
-const BadgeIcon = ({ level, color, locked }: { level: number; color: string; locked: boolean }) => {
-  const fill = color;
-  const stroke = 'white';
-  
-  if (level === 1) { // Based
-    return (
-      <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="p-1">
-        <path d="M12 2L3 7V12C3 17.52 6.92 22.74 12 24C17.08 22.74 21 17.52 21 12V7L12 2Z" fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    );
-  }
-  
-  if (level === 2) { // Builder
-    return (
-      <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="p-1">
-        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    );
-  }
-
-  if (level === 3) { // Superchain
-    return (
-      <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="p-1">
-        <path d="M2 4L12 2L22 4V10C22 10 22 18 12 22C2 18 2 10 2 10V4Z" fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinejoin="round"/>
-        <path d="M9 12L12 9L15 12" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    );
-  }
-
-  if (level === 4) { // Legend
-    return (
-      <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="p-1">
-        <path d="M6 2L3 6V20C3 21.1 3.9 22 5 22H19C20.1 22 21 21.1 21 20V6L18 2H6Z" fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <circle cx="12" cy="12" r="3" fill="white" fillOpacity="0.3"/>
-      </svg>
-    );
-  }
-
-  if (level === 5) { // Giga Brain
-    return (
-        <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="p-1">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke={stroke} strokeWidth="1.5" strokeLinejoin="round" fill={fill}/>
-          <path d="M2 17L12 22L22 17" stroke={stroke} strokeWidth="1.5" strokeLinejoin="round"/>
-          <path d="M2 12L12 17L22 12" stroke={stroke} strokeWidth="1.5" strokeLinejoin="round"/>
-        </svg>
-    );
-  }
-
-  return null;
-};
-
 const AchievementBadges: React.FC<AchievementBadgesProps> = ({ score, walletAddress }) => {
   const [mintedBadges, setMintedBadges] = useState<boolean[]>(new Array(BADGE_LEVELS.length).fill(false));
   const [isMinting, setIsMinting] = useState<number | null>(null);
@@ -127,7 +75,7 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ score, walletAddr
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-5 gap-2 px-3 w-full">
+      <div className="grid grid-cols-5 gap-3 px-2 w-full">
         {BADGE_LEVELS.map((badge, index) => {
           const unlocked = score >= badge.score;
           const isMinted = mintedBadges[index];
@@ -137,31 +85,32 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ score, walletAddr
           return (
             <div 
               key={badge.id} 
-              className={`flex flex-col items-center justify-start relative group transition-opacity duration-300 ${unlocked ? 'opacity-100' : 'opacity-40 grayscale'}`}
+              className={`flex flex-col items-center justify-start relative group transition-all duration-300 ${unlocked ? 'opacity-100' : 'opacity-40 grayscale blur-[0.5px]'}`}
             >
               <div 
                 className={`
-                    relative z-10 w-9 h-9 md:w-11 md:h-11 rounded-full flex items-center justify-center
-                    border-2 transition-all duration-300
-                    ${isMinted ? 'shadow-[0_0_15px_rgba(0,0,0,0.5)] border-white/40' : ''}
+                    relative z-10 w-11 h-11 md:w-14 md:h-14 flex items-center justify-center
+                    transition-transform duration-300
+                    ${isMinted ? 'scale-110' : 'hover:scale-105'}
                 `}
-                style={{ 
-                  backgroundColor: unlocked ? `${badge.color}20` : `${badge.color}10`,
-                  borderColor: isMinted ? '#00FF00' : (unlocked ? badge.color : `${badge.color}40`),
-                }}
               >
-                  <BadgeIcon level={badge.id} color={badge.color} locked={!unlocked} />
+                  {/* Use local SVG assets */}
+                  <img 
+                    src={`/badges/${badge.id}.svg`} 
+                    alt={badge.label}
+                    className="w-full h-full object-contain drop-shadow-xl"
+                  />
                   
                   {/* Owned checkmark */}
                   {isMinted && (
-                    <div className="absolute -top-1 -right-1 bg-green-500 text-black rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-bold border border-black shadow-sm">
+                    <div className="absolute -top-1 -right-1 bg-[#0052FF] text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold border border-[#0F1115] shadow-lg z-20">
                         ✓
                     </div>
                   )}
               </div>
               
-              <div className="text-center flex flex-col items-center mt-1 w-full gap-0.5">
-                <span className={`text-[8px] font-bold block truncate w-full ${unlocked ? 'text-white' : 'text-gray-500'}`}>
+              <div className="text-center flex flex-col items-center mt-2 w-full gap-0.5">
+                <span className={`text-[9px] font-black uppercase tracking-wider block w-full ${unlocked ? 'text-white' : 'text-gray-500'}`}>
                   {badge.label}
                 </span>
                 
@@ -170,12 +119,12 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ score, walletAddr
                    <button 
                       onClick={() => handleMint(badge.id, badge.score)}
                       disabled={loading}
-                      className="mt-1 bg-[#0052FF] hover:bg-blue-600 text-white text-[8px] font-bold px-2 py-0.5 rounded shadow-lg shadow-blue-500/30 animate-pulse active:scale-95 transition-transform"
+                      className="mt-1 bg-[#0052FF] hover:bg-blue-600 text-white text-[8px] font-bold px-3 py-1 rounded-full shadow-[0_0_10px_rgba(0,82,255,0.5)] animate-pulse active:scale-95 transition-transform"
                    >
                      {loading ? '...' : 'MINT'}
                    </button>
                 ) : (
-                    <span className="text-[7px] text-gray-500 font-mono block leading-tight">
+                    <span className="text-[8px] text-gray-500 font-mono block">
                         {badge.score >= 1000 ? (badge.score / 1000) + 'k' : badge.score}
                     </span>
                 )}
