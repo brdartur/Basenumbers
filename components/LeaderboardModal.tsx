@@ -30,7 +30,7 @@ const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, us
         
         setIsLoading(true);
         try {
-            const chainData = await fetchChainLeaderboard(window.ethereum);
+            const chainData = await fetchChainLeaderboard(window.ethereum, walletAddress || undefined);
             if (isMounted && chainData && chainData.length > 0) {
                 setLeaders(chainData);
             }
@@ -43,25 +43,21 @@ const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, us
 
     if (isOpen) {
         if (CONTRACT_ADDRESS) {
-            // Clear mocks if we are going live
             setLeaders([]); 
             loadData();
         } else {
-            // Restore mocks if in demo mode
             setLeaders(MOCK_LEADERS);
         }
     }
 
     return () => { isMounted = false; };
-  }, [isOpen]);
+  }, [isOpen, walletAddress]);
 
-  // Calculate Ranks
-  // MOVED BEFORE RETURN NULL TO FIX REACT ERROR #310 (Hooks must run unconditionally)
+  // Handle Ranks based on the fetched (already sorted) data
   const { userRankData, topLeaderboard } = useMemo(() => {
-    // 1. Copy leaders
-    let allPlayers = [...leaders.map(p => ({ ...p, isUser: false }))];
+    let allPlayers = [...leaders];
     
-    // 2. Check if user is already in the list
+    // Check if current user is in the fetched list
     const existingUserIndex = walletAddress 
         ? allPlayers.findIndex(p => p.address.toLowerCase() === walletAddress.toLowerCase())
         : -1;
@@ -69,37 +65,33 @@ const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, us
     let userEntry;
 
     if (existingUserIndex >= 0) {
-        // User is in the leaderboard
-        // Update their score locally if current game score is higher (optimistic UI)
-        if (userScore > allPlayers[existingUserIndex].score) {
-            allPlayers[existingUserIndex].score = userScore;
+        // User is found in chain data
+        const player = allPlayers[existingUserIndex];
+        // If current local score is higher than chain score, show local score optimistically
+        if (userScore > player.score) {
+            player.score = userScore;
         }
-        allPlayers[existingUserIndex].isUser = true;
-        userEntry = allPlayers[existingUserIndex];
+        player.isUser = true;
+        userEntry = { ...player, rank: existingUserIndex + 1 };
     } else {
-        // User not in leaderboard, add temporarily for ranking context
+        // User not in top list yet
         userEntry = {
             address: walletAddress || 'You',
             name: walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : 'You',
             score: userScore,
             verified: false,
-            isUser: true
+            isUser: true,
+            rank: '-'
         };
-        allPlayers.push(userEntry);
+        // We don't push them to the main list if they aren't in the top, 
+        // we just show them in the pinned "You" section.
     }
 
-    // 3. Sort by Score DESC
-    allPlayers.sort((a, b) => b.score - a.score);
-
-    // 4. Find User Rank after sort
-    const userIndex = allPlayers.findIndex(p => p.isUser);
-    const userRank = userIndex + 1;
-    
-    // 5. Get Top 50 (Contract stores 50)
+    // Since `fetchChainLeaderboard` already sorts descending, we just take the top 50
     const topList = allPlayers.slice(0, 50);
 
     return {
-        userRankData: { ...userEntry, rank: userRank },
+        userRankData: userEntry,
         topLeaderboard: topList
     };
   }, [userScore, walletAddress, leaders]);
@@ -153,7 +145,7 @@ const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, us
            <div className="grid grid-cols-12 px-4 py-4 items-center">
               <div className="col-span-2">
                 <span className="font-bold text-blue-400 text-lg">
-                  #{userRankData.rank}
+                  {userRankData.rank}
                 </span>
               </div>
               <div className="col-span-6 flex flex-col justify-center">
@@ -184,7 +176,8 @@ const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, us
             <div className="flex flex-col">
                 {topLeaderboard.map((player, index) => {
                 const rank = index + 1;
-                const isUser = (player as any).isUser;
+                // Since we sorted freshly in smartContract.ts, index+1 is the correct rank
+                const isUser = player.address.toLowerCase() === (walletAddress || '').toLowerCase();
                 
                 let rankDisplay = `#${rank}`;
                 let rankColor = "text-gray-400 font-bold";
