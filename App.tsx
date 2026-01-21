@@ -6,7 +6,7 @@ import AchievementBadges from './components/AchievementBadges';
 import WalletConnect from './components/WalletConnect';
 import LeaderboardModal from './components/LeaderboardModal';
 import { COLORS, BADGE_LEVELS } from './constants';
-import { CONTRACT_ADDRESS, encodeSubmitScore, setContractURI } from './services/smartContract';
+import { CONTRACT_ADDRESS, encodeSubmitScore, setContractURI, NFT_CONTRACT_ADDRESS } from './services/smartContract';
 import { playMoveSound, playMergeSound, playWinSound, playGameOverSound, triggerHaptic } from './services/audio';
 
 // --- ICONS ---
@@ -430,11 +430,21 @@ export default function App() {
           </div>
         </div>
 
-        {/* Footer info - Admin Panel Removed */}
-        <div className="flex flex-col items-center justify-center mt-auto gap-4">
+        {/* Footer info - View Collection */}
+        <div className="flex flex-col items-center justify-center mt-auto gap-1">
              <div className="text-center text-[10px] text-gray-600 font-mono">
                 BASE 2048
              </div>
+             {NFT_CONTRACT_ADDRESS && (
+                 <a 
+                   href={`https://opensea.io/assets/base/${NFT_CONTRACT_ADDRESS}`}
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="flex items-center gap-1 text-[9px] text-[#0052FF] hover:text-white transition-colors uppercase font-bold tracking-wider"
+                 >
+                    View Collection <ExternalLinkIcon />
+                 </a>
+             )}
         </div>
       </div>
 
