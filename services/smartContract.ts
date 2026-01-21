@@ -13,7 +13,7 @@
 // ------------------------------------------------------------------
 
 // Адрес лидерборда (оставь как есть или замени на свой)
-export const CONTRACT_ADDRESS = "0x8Be283140d2a9b3707B2381Da240dAa0D33A57D7"; 
+export const CONTRACT_ADDRESS = "0x56532b387701D63b510aAAd9451B6116d40ff280"; 
 
 // ABI for Leaderboard (Submit Score)
 export const LEADERBOARD_ABI = [
