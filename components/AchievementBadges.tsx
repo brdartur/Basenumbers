@@ -77,9 +77,11 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ score, walletAddr
     <div className="w-full">
       <div className="grid grid-cols-5 gap-3 px-2 w-full">
         {BADGE_LEVELS.map((badge, index) => {
-          const unlocked = score >= badge.score;
           const isMinted = mintedBadges[index];
-          const canMint = unlocked && !isMinted;
+          // Logic update: Unlocked if score meets requirements OR if user already owns the badge
+          const unlocked = score >= badge.score || isMinted;
+          
+          const canMint = score >= badge.score && !isMinted;
           const loading = isMinting === badge.id;
           
           return (
