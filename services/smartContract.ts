@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 // ------------------------------------------------------------------
 // CONFIGURATION
 // ------------------------------------------------------------------
-export const CONTRACT_ADDRESS = "0xb995bcaD89CE57734111481d1785016555f4e6fa"; // Ваш новый адрес
+export const CONTRACT_ADDRESS = "0xC2150109D300E572C7E6563A46a9C03F5F8330D3"; // Ваш новый адрес
 
 // Using ethers Interface for reliable encoding/decoding of structs
 const ABI = [
