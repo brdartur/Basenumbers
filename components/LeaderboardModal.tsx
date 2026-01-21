@@ -9,13 +9,13 @@ interface LeaderboardModalProps {
   walletAddress: string | null;
 }
 
-// Fallback mocks
+// Fallback mocks - Updated to reflect Giga Brain (30k) potential
 const MOCK_LEADERS = [
-  { address: '0x8BDF...F624', name: '0x8BDF...F624', score: 12352, verified: true },
-  { address: '0x29F4...Bd6E', name: '0x29F4...Bd6E', score: 11312, verified: true },
-  { address: '0x71C7...90A2', name: '0x71C7...90A2', score: 9500, verified: true },
-  { address: '0xA420...6969', name: '0xA420...6969', score: 8200, verified: true },
-  { address: '0xB1C4...2291', name: '0xB1C4...2291', score: 5000, verified: false },
+  { address: '0x8BDF...F624', name: '0x8BDF...F624', score: 42069, verified: true },
+  { address: '0x29F4...Bd6E', name: '0x29F4...Bd6E', score: 31312, verified: true },
+  { address: '0x71C7...90A2', name: '0x71C7...90A2', score: 28500, verified: true },
+  { address: '0xA420...6969', name: '0xA420...6969', score: 15200, verified: true },
+  { address: '0xB1C4...2291', name: '0xB1C4...2291', score: 8000, verified: false },
 ];
 
 const MedalIcon = ({ rank }: { rank: number }) => {
