@@ -6,7 +6,7 @@ import AchievementBadges from './components/AchievementBadges';
 import WalletConnect from './components/WalletConnect';
 import LeaderboardModal from './components/LeaderboardModal';
 import { COLORS, BADGE_LEVELS } from './constants';
-import { CONTRACT_ADDRESS, encodeSubmitScore, setContractURI } from './services/smartContract';
+import { CONTRACT_ADDRESS, encodeSubmitScore, setContractURI, NFT_CONTRACT_ADDRESS, fetchCurrentOnChainScore } from './services/smartContract';
 import { playMoveSound, playMergeSound, playWinSound, playGameOverSound, triggerHaptic } from './services/audio';
 
 // --- ICONS ---
@@ -122,6 +122,28 @@ export default function App() {
     isInitialized.current = true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync Best Score from Blockchain when Wallet Connects
+  useEffect(() => {
+    const syncOnChainScore = async () => {
+        if (walletAddress && window.ethereum) {
+            try {
+                // Fetch the immutable score from the smart contract
+                const chainScore = await fetchCurrentOnChainScore(window.ethereum, walletAddress);
+                
+                // If the blockchain score is higher than what we have locally (e.g. user cleared cookies), restore it
+                if (chainScore > bestScore) {
+                    console.log(`Restoring Best Score from chain: ${chainScore}`);
+                    setBestScore(chainScore);
+                    localStorage.setItem('base2048-best', chainScore.toString());
+                }
+            } catch (e) {
+                console.warn("Could not sync score from chain", e);
+            }
+        }
+    };
+    syncOnChainScore();
+  }, [walletAddress, bestScore]);
 
   // Save Settings when changed
   const toggleSound = () => {
@@ -430,11 +452,21 @@ export default function App() {
           </div>
         </div>
 
-        {/* Footer info - Admin Panel Removed */}
-        <div className="flex flex-col items-center justify-center mt-auto gap-4">
+        {/* Footer info - View Collection */}
+        <div className="flex flex-col items-center justify-center mt-auto gap-1">
              <div className="text-center text-[10px] text-gray-600 font-mono">
                 BASE 2048
              </div>
+             {NFT_CONTRACT_ADDRESS && (
+                 <a 
+                   href={`https://opensea.io/assets/base/${NFT_CONTRACT_ADDRESS}`}
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="flex items-center gap-1 text-[9px] text-[#0052FF] hover:text-white transition-colors uppercase font-bold tracking-wider"
+                 >
+                    View Collection <ExternalLinkIcon />
+                 </a>
+             )}
         </div>
       </div>
 
