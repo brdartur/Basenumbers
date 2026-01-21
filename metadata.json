@@ -1,5 +1,5 @@
 {
-  "name": "Copy of Base 2048 new",
+  "name": "Base 2048",
   "description": "A 2048-style puzzle game optimized for the Base network ecosystem. Join the numbers to reach the 2048 tile!",
   "requestFramePermissions": []
 }
