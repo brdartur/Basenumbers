@@ -6,7 +6,7 @@ import AchievementBadges from './components/AchievementBadges';
 import WalletConnect from './components/WalletConnect';
 import LeaderboardModal from './components/LeaderboardModal';
 import { COLORS, BADGE_LEVELS } from './constants';
-import { CONTRACT_ADDRESS, encodeSubmitScore } from './services/smartContract';
+import { CONTRACT_ADDRESS, encodeSubmitScore, setContractURI } from './services/smartContract';
 import { playMoveSound, playMergeSound, playWinSound, playGameOverSound, triggerHaptic } from './services/audio';
 
 // --- ICONS ---
@@ -82,6 +82,10 @@ export default function App() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+
+  // Admin State
+  const [adminCid, setAdminCid] = useState("bafybeigxxa5pn7vlmjzvjxbocsdczihqebuoimfg7t7ahoerwqt6joajxa");
+  const [isAdminLoading, setIsAdminLoading] = useState(false);
 
   // UI State
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -201,11 +205,6 @@ export default function App() {
     setTxHash(null);
     
     try {
-      // 1. Pre-flight check REMOVED to allow minting in all cases
-      // The smart contract should handle logic (update if higher, ignore if lower)
-      // without reverting the transaction.
-
-      // 2. Prepare Transaction
       const scoreData = encodeSubmitScore(bestScore);
       let hash = null;
 
@@ -221,12 +220,11 @@ export default function App() {
           });
         } catch (contractError: any) {
           if (contractError?.code === 4001) throw contractError;
-          // Fallback logic if simple send fails
           console.warn("Retrying with value fallback...");
           hash = await window.ethereum.request({
             method: 'eth_sendTransaction',
             params: [{
-              to: walletAddress, // Self-send fallback strictly for testing if contract fails
+              to: walletAddress, 
               from: walletAddress,
               value: '0x0',
               data: scoreData,
@@ -244,11 +242,32 @@ export default function App() {
     } catch (error: any) {
       console.error("Transaction failed", error);
       if (error?.code !== 4001) {
-        // Only alert if it's not a user rejection
         alert("Transaction failed. Please ensure you are on Base Mainnet.");
       }
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  // --- ADMIN UPDATE URI ---
+  const handleUpdateUri = async () => {
+    if(!walletAddress || !window.ethereum) return;
+    
+    const URI = `ipfs://${adminCid}/`;
+    
+    const confirm = window.confirm(`Admin Action:\n\nSet NFT Metadata URI to:\n${URI}\n\n(Ensure this CID points to a FOLDER containing 1.json, 2.json...)`);
+    if(!confirm) return;
+
+    setIsAdminLoading(true);
+    try {
+        const tx = await setContractURI(window.ethereum, URI);
+        await tx.wait();
+        alert("Metadata URI Updated Successfully! Your NFTs should reveal shortly.");
+    } catch (e: any) {
+        console.error(e);
+        alert("Error updating URI. Are you the contract owner? Check console.");
+    } finally {
+        setIsAdminLoading(false);
     }
   };
 
@@ -307,10 +326,7 @@ export default function App() {
       {/* Dynamic Background */}
       <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full opacity-5 blur-[120px]" style={{ background: COLORS.primary }} />
 
-      {/* 
-        Main Container:
-        Restricted to 360px to exactly match the board width + layout tightness.
-      */}
+      {/* Main Container */}
       <div className="w-full max-w-[360px] z-10 flex flex-col h-full justify-between pb-12">
         
         {/* TOP BAR */}
@@ -440,11 +456,37 @@ export default function App() {
           </div>
         </div>
 
-        {/* Footer info */}
-        <div className="flex flex-col items-center justify-center mt-auto gap-1">
+        {/* Footer info & Admin Panel */}
+        <div className="flex flex-col items-center justify-center mt-auto gap-4">
              <div className="text-center text-[10px] text-gray-600 font-mono">
                 BASE 2048
              </div>
+             
+             {/* ADMIN PANEL */}
+             {walletAddress && (
+                 <div className="w-full bg-[#111] border border-[#222] rounded-lg p-3">
+                     <div className="flex items-center justify-between mb-2">
+                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Admin: Metadata URI</span>
+                         <span className="text-[9px] text-gray-700 font-mono">Owner Only</span>
+                     </div>
+                     <div className="flex gap-2">
+                        <input 
+                            type="text" 
+                            value={adminCid} 
+                            onChange={(e) => setAdminCid(e.target.value)}
+                            className="flex-grow bg-black text-white text-[10px] p-2 rounded border border-[#333] font-mono focus:border-[#0052FF] outline-none"
+                            placeholder="IPFS CID"
+                        />
+                        <button 
+                            onClick={handleUpdateUri}
+                            disabled={isAdminLoading}
+                            className="bg-[#222] hover:bg-[#333] text-white text-[9px] font-bold px-3 rounded border border-[#333] transition-colors"
+                        >
+                            {isAdminLoading ? '...' : 'SET URI'}
+                        </button>
+                     </div>
+                 </div>
+             )}
         </div>
       </div>
 
