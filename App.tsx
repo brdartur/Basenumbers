@@ -6,7 +6,7 @@ import AchievementBadges from './components/AchievementBadges';
 import WalletConnect from './components/WalletConnect';
 import LeaderboardModal from './components/LeaderboardModal';
 import { COLORS, BADGE_LEVELS } from './constants';
-import { CONTRACT_ADDRESS, encodeSubmitScore } from './services/smartContract';
+import { CONTRACT_ADDRESS, encodeSubmitScore, fetchCurrentOnChainScore } from './services/smartContract';
 import { playMoveSound, playMergeSound, playWinSound, playGameOverSound, triggerHaptic } from './services/audio';
 
 // --- ICONS ---
@@ -200,10 +200,20 @@ export default function App() {
     setIsVerifying(true);
     setTxHash(null);
     
-    let hash = null;
-    const scoreData = encodeSubmitScore(bestScore);
-
     try {
+      // 1. Pre-flight check: Compare with on-chain score
+      const onChainBest = await fetchCurrentOnChainScore(window.ethereum, walletAddress);
+      
+      if (bestScore <= onChainBest) {
+        alert(`Your current score (${bestScore}) is not higher than your minted record (${onChainBest}).\n\nKeep playing to beat your record!`);
+        setIsVerifying(false);
+        return;
+      }
+
+      // 2. Prepare Transaction
+      const scoreData = encodeSubmitScore(bestScore);
+      let hash = null;
+
       if (CONTRACT_ADDRESS) {
         try {
           hash = await window.ethereum.request({
@@ -216,29 +226,19 @@ export default function App() {
           });
         } catch (contractError: any) {
           if (contractError?.code === 4001) throw contractError;
-          // Fallback to self-send
+          // Fallback logic if simple send fails
+          console.warn("Retrying with value fallback...");
           hash = await window.ethereum.request({
             method: 'eth_sendTransaction',
             params: [{
-              to: walletAddress,
+              to: walletAddress, // Self-send fallback strictly for testing if contract fails
               from: walletAddress,
               value: '0x0',
               data: scoreData,
             }],
           });
         }
-      } else {
-        // Fallback
-        hash = await window.ethereum.request({
-          method: 'eth_sendTransaction',
-          params: [{
-            to: walletAddress,
-            from: walletAddress,
-            value: '0x0',
-            data: scoreData,
-          }],
-        });
-      }
+      } 
 
       if (hash) {
         setTxHash(hash);
@@ -248,7 +248,10 @@ export default function App() {
       
     } catch (error: any) {
       console.error("Transaction failed", error);
-      if (error?.code !== 4001) alert("Transaction failed.");
+      if (error?.code !== 4001) {
+        // Only alert if it's not a user rejection
+        alert("Transaction failed. Check console for details.");
+      }
     } finally {
       setIsVerifying(false);
     }
