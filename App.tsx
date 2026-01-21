@@ -452,21 +452,11 @@ export default function App() {
           </div>
         </div>
 
-        {/* Footer info - View Collection */}
+        {/* Footer info - View Collection Removed */}
         <div className="flex flex-col items-center justify-center mt-auto gap-1">
              <div className="text-center text-[10px] text-gray-600 font-mono">
                 BASE 2048
              </div>
-             {NFT_CONTRACT_ADDRESS && (
-                 <a 
-                   href={`https://opensea.io/assets/base/${NFT_CONTRACT_ADDRESS}`}
-                   target="_blank" 
-                   rel="noopener noreferrer"
-                   className="flex items-center gap-1 text-[9px] text-[#0052FF] hover:text-white transition-colors uppercase font-bold tracking-wider"
-                 >
-                    View Collection <ExternalLinkIcon />
-                 </a>
-             )}
         </div>
       </div>
 
