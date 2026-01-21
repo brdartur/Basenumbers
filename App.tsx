@@ -373,7 +373,7 @@ export default function App() {
         {/* GAME BOARD AREA */}
         <div className="flex-grow flex flex-col justify-center relative">
           
-          <AchievementBadges score={bestScore} />
+          <AchievementBadges score={bestScore} walletAddress={walletAddress} />
           
           <div className="mt-3 relative w-full">
              <Board grid={grid} />
