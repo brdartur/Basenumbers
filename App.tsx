@@ -83,10 +83,6 @@ export default function App() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  // Admin State
-  const [adminCid, setAdminCid] = useState("bafybeigxxa5pn7vlmjzvjxbocsdczihqebuoimfg7t7ahoerwqt6joajxa");
-  const [isAdminLoading, setIsAdminLoading] = useState(false);
-
   // UI State
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
@@ -246,28 +242,6 @@ export default function App() {
       }
     } finally {
       setIsVerifying(false);
-    }
-  };
-
-  // --- ADMIN UPDATE URI ---
-  const handleUpdateUri = async () => {
-    if(!walletAddress || !window.ethereum) return;
-    
-    const URI = `ipfs://${adminCid}/`;
-    
-    const confirm = window.confirm(`Admin Action:\n\nSet NFT Metadata URI to:\n${URI}\n\n(Ensure this CID points to a FOLDER containing 1.json, 2.json...)`);
-    if(!confirm) return;
-
-    setIsAdminLoading(true);
-    try {
-        const tx = await setContractURI(window.ethereum, URI);
-        await tx.wait();
-        alert("Metadata URI Updated Successfully! Your NFTs should reveal shortly.");
-    } catch (e: any) {
-        console.error(e);
-        alert("Error updating URI. Are you the contract owner? Check console.");
-    } finally {
-        setIsAdminLoading(false);
     }
   };
 
@@ -456,37 +430,11 @@ export default function App() {
           </div>
         </div>
 
-        {/* Footer info & Admin Panel */}
+        {/* Footer info - Admin Panel Removed */}
         <div className="flex flex-col items-center justify-center mt-auto gap-4">
              <div className="text-center text-[10px] text-gray-600 font-mono">
                 BASE 2048
              </div>
-             
-             {/* ADMIN PANEL */}
-             {walletAddress && (
-                 <div className="w-full bg-[#111] border border-[#222] rounded-lg p-3">
-                     <div className="flex items-center justify-between mb-2">
-                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Admin: Metadata URI</span>
-                         <span className="text-[9px] text-gray-700 font-mono">Owner Only</span>
-                     </div>
-                     <div className="flex gap-2">
-                        <input 
-                            type="text" 
-                            value={adminCid} 
-                            onChange={(e) => setAdminCid(e.target.value)}
-                            className="flex-grow bg-black text-white text-[10px] p-2 rounded border border-[#333] font-mono focus:border-[#0052FF] outline-none"
-                            placeholder="IPFS CID"
-                        />
-                        <button 
-                            onClick={handleUpdateUri}
-                            disabled={isAdminLoading}
-                            className="bg-[#222] hover:bg-[#333] text-white text-[9px] font-bold px-3 rounded border border-[#333] transition-colors"
-                        >
-                            {isAdminLoading ? '...' : 'SET URI'}
-                        </button>
-                     </div>
-                 </div>
-             )}
         </div>
       </div>
 
