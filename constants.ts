@@ -28,11 +28,12 @@ export const TILE_COLORS: Record<number, { bg: string; text: string; shadow: str
 
 export const GRID_SIZE = 4;
 export const WINNING_SCORE = 2048;
-export const REFERRALS_REQUIRED_FOR_UNDO = 3;
 
+// Updated Badge Levels for NFT Minting
 export const BADGE_LEVELS = [
-  { id: 1, score: 1000, label: 'Based', color: '#FFFFFF' },   
+  { id: 1, score: 2000, label: 'Based', color: '#FFFFFF' },   
   { id: 2, score: 5000, label: 'Builder', color: '#0052FF' }, 
   { id: 3, score: 10000, label: 'Superchain', color: '#00D2FF' }, 
-  { id: 4, score: 20000, label: 'Legend', color: '#FFD700' }  
+  { id: 4, score: 20000, label: 'Legend', color: '#FFD700' },
+  { id: 5, score: 30000, label: 'Giga Brain', color: '#FF0055' } // New 30k Tier
 ];
