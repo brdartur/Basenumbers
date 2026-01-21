@@ -6,7 +6,7 @@ import AchievementBadges from './components/AchievementBadges';
 import WalletConnect from './components/WalletConnect';
 import LeaderboardModal from './components/LeaderboardModal';
 import { COLORS, BADGE_LEVELS } from './constants';
-import { CONTRACT_ADDRESS, encodeSubmitScore, fetchCurrentOnChainScore } from './services/smartContract';
+import { CONTRACT_ADDRESS, encodeSubmitScore } from './services/smartContract';
 import { playMoveSound, playMergeSound, playWinSound, playGameOverSound, triggerHaptic } from './services/audio';
 
 // --- ICONS ---
@@ -201,14 +201,9 @@ export default function App() {
     setTxHash(null);
     
     try {
-      // 1. Pre-flight check: Compare with on-chain score
-      const onChainBest = await fetchCurrentOnChainScore(window.ethereum, walletAddress);
-      
-      if (bestScore <= onChainBest) {
-        alert(`Your current score (${bestScore}) is not higher than your minted record (${onChainBest}).\n\nKeep playing to beat your record!`);
-        setIsVerifying(false);
-        return;
-      }
+      // 1. Pre-flight check REMOVED to allow minting in all cases
+      // The smart contract should handle logic (update if higher, ignore if lower)
+      // without reverting the transaction.
 
       // 2. Prepare Transaction
       const scoreData = encodeSubmitScore(bestScore);
@@ -250,7 +245,7 @@ export default function App() {
       console.error("Transaction failed", error);
       if (error?.code !== 4001) {
         // Only alert if it's not a user rejection
-        alert("Transaction failed. Check console for details.");
+        alert("Transaction failed. Please ensure you are on Base Mainnet.");
       }
     } finally {
       setIsVerifying(false);
