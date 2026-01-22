@@ -28,7 +28,23 @@
     <meta property="og:url" content="https://basenumbers.vercel.app/" />
     <meta property="og:type" content="website" />
 
-    <!-- FARCASTER FRAME (Viral Growth) -->
+    <!-- BASE MINI APP EMBED METADATA (Required for Base App) -->
+    <meta
+      name="fc:miniapp"
+      content='{
+        "version": "next",
+        "imageUrl": "https://github.com/base.png",
+        "button": {
+          "title": "Open Base 2048",
+          "action": {
+            "type": "launch_frame",
+            "url": "https://basenumbers.vercel.app"
+          }
+        }
+      }'
+    />
+
+    <!-- FARCASTER FRAME (Legacy compatibility) -->
     <meta property="fc:frame" content="vNext" />
     <meta property="fc:frame:image" content="https://github.com/base.png" />
     <meta property="fc:frame:button:1" content="Play Base 2048 🟦" />
