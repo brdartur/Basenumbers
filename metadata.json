@@ -1,7 +1,13 @@
 
 {
   "name": "Base 2048",
-  "description": "The definitive on-chain 2048 experience. Play, climb the global leaderboard, and mint your achievements as NFTs on Base. Optimized for Base Smart Wallet.",
+  "short_name": "Base2048",
+  "description": "The ultimate on-chain 2048 puzzle game. Compete on global leaderboards, mint high scores, and earn NFT badges on Base Network.",
+  "categories": [
+    "games",
+    "social",
+    "entertainment"
+  ],
   "requestFramePermissions": [
     "geolocation"
   ]
