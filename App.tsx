@@ -49,29 +49,6 @@ const BaseLogo = () => (
   </svg>
 );
 
-const Ticker = () => (
-  <div className="fixed bottom-0 left-0 right-0 bg-[#0052FF]/90 backdrop-blur-md text-white py-2 overflow-hidden z-40 border-t border-blue-400/50 shadow-[0_-5px_20px_rgba(0,82,255,0.3)]">
-    <div className="whitespace-nowrap animate-ticker flex font-bold tracking-widest text-xs uppercase">
-      <span className="mx-4">Build on Base</span> • 
-      <span className="mx-4">Stay Based</span> • 
-      <span className="mx-4">Mint Your Score</span> • 
-      <span className="mx-4">Based 2048</span> •
-      <span className="mx-4">Build on Base</span> • 
-      <span className="mx-4">Stay Based</span> • 
-      <span className="mx-4">Mint Your Score</span> • 
-      <span className="mx-4">Based 2048</span> •
-      <span className="mx-4">Build on Base</span> • 
-      <span className="mx-4">Stay Based</span> • 
-      <span className="mx-4">Mint Your Score</span> • 
-      <span className="mx-4">Based 2048</span> •
-      <span className="mx-4">Build on Base</span> • 
-      <span className="mx-4">Stay Based</span> • 
-      <span className="mx-4">Mint Your Score</span> • 
-      <span className="mx-4">Based 2048</span>
-    </div>
-  </div>
-);
-
 // --- THEME DEFINITIONS ---
 type Theme = 'classic' | 'sapphire' | 'grid' | 'aurora';
 
@@ -556,8 +533,6 @@ export default function App() {
         </div>
       </div>
 
-      <Ticker />
-      
       <LeaderboardModal 
         isOpen={showLeaderboard}
         onClose={() => setShowLeaderboard(false)}
