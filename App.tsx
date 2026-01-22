@@ -39,7 +39,7 @@ const SoundOffIcon = () => (
 );
 
 const PaletteIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
 );
 
 const BaseLogo = () => (
@@ -408,14 +408,6 @@ export default function App() {
                 </div>
                 
                 <div className="flex items-center gap-1">
-                    {/* Theme Toggle Button */}
-                    <button 
-                        onClick={() => setShowThemeSelector(!showThemeSelector)} 
-                        className={`p-2 transition-colors hover:bg-white/5 rounded-full ${showThemeSelector ? 'text-white bg-white/10' : 'text-gray-400'}`}
-                    >
-                        <PaletteIcon />
-                    </button>
-
                     <button onClick={toggleSound} className="p-2 text-gray-400 hover:text-white transition-colors hover:bg-white/5 rounded-full">
                         {soundEnabled ? <SoundOnIcon /> : <SoundOffIcon />}
                     </button>
@@ -424,21 +416,6 @@ export default function App() {
                         onDisconnect={() => setWalletAddress(null)}
                     />
                 </div>
-                
-                {/* --- THEME SELECTOR DROPDOWN --- */}
-                {showThemeSelector && (
-                    <div className="absolute top-full right-0 mt-2 bg-[#0F1115] border border-[#222] p-2 rounded-xl shadow-2xl flex gap-2 animate-fade-in z-[60]">
-                        {THEMES.map((t) => (
-                            <button
-                                key={t.id}
-                                onClick={() => changeTheme(t.id)}
-                                className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${theme === t.id ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'border-transparent opacity-80'}`}
-                                style={{ background: t.previewColor }}
-                                title={t.name}
-                            />
-                        ))}
-                    </div>
-                )}
             </div>
 
             {/* Score Row */}
@@ -457,7 +434,32 @@ export default function App() {
                     </div>
                  </div>
 
-                 <div className="flex gap-2 ml-auto">
+                 <div className="flex gap-2 ml-auto relative">
+                    
+                    {/* Theme Toggle Button */}
+                    <button 
+                        onClick={() => setShowThemeSelector(!showThemeSelector)} 
+                        className={`bg-[#1A1A1A]/80 hover:bg-[#252525] backdrop-blur-md border border-[#333] text-white w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-lg ${showThemeSelector ? 'border-[#0052FF] text-[#0052FF]' : ''}`}
+                        title="Change Theme"
+                    >
+                        <PaletteIcon />
+                    </button>
+                    
+                    {/* Theme Selector Dropdown */}
+                    {showThemeSelector && (
+                        <div className="absolute top-full right-0 mt-2 bg-[#0F1115] border border-[#222] p-2 rounded-xl shadow-2xl flex gap-2 animate-fade-in z-[60]">
+                            {THEMES.map((t) => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => changeTheme(t.id)}
+                                    className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${theme === t.id ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'border-transparent opacity-80'}`}
+                                    style={{ background: t.previewColor }}
+                                    title={t.name}
+                                />
+                            ))}
+                        </div>
+                    )}
+
                     <button 
                         onClick={startNewGame}
                         className="bg-[#1A1A1A]/80 hover:bg-[#252525] backdrop-blur-md border border-[#333] text-white w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-lg"
