@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#0052FF" />
     <title>Base 2048</title>
-    <meta name="description" content="Base Network 2048 Game" />
+    <meta name="description" content="Play 2048 on Base Network. Mint your high score onchain!" />
     
-    <!-- Base App Verification -->
+    <!-- Base App Verification & Smart Wallet Logic -->
     <meta name="base:app_id" content="69700820c7101b34248dc35e" />
 
-    <!-- Favicons (Updated to GitHub square avatar) -->
+    <!-- Favicons -->
     <link rel="icon" type="image/png" href="https://github.com/base.png" />
     <link rel="alternate icon" href="https://github.com/base.png" />
     <link rel="apple-touch-icon" href="https://github.com/base.png" />
@@ -19,10 +19,28 @@
     <!-- PWA / Mini App Manifest -->
     <link rel="manifest" href="/manifest.json" />
     
-    <!-- Open Graph for sharing on Farcaster/Base -->
+    <!-- Open Graph (Facebook/Twitter/Discord) -->
     <meta property="og:title" content="Base 2048" />
-    <meta property="og:description" content="Play 2048 on Base Network. Mint your high score!" />
+    <meta property="og:description" content="Can you reach 2048? Play now on Base Network and mint your score as an NFT." />
     <meta property="og:image" content="https://github.com/base.png" />
+    <meta property="og:url" content="https://basenumbers.vercel.app/" />
+    <meta property="og:type" content="website" />
+
+    <!-- FARCASTER FRAME META TAGS (Crucial for Base Ecosystem) -->
+    <!-- This makes your link look like a specialized app launcher in Warpcast -->
+    <meta property="fc:frame" content="vNext" />
+    <meta property="fc:frame:image" content="https://github.com/base.png" />
+    <meta property="fc:frame:image:aspect_ratio" content="1:1" />
+    <meta property="fc:frame:button:1" content="Play Base 2048 🟦" />
+    <meta property="fc:frame:button:1:action" content="link" />
+    <meta property="fc:frame:button:1:target" content="https://basenumbers.vercel.app/" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@base" />
+    <meta name="twitter:title" content="Base 2048" />
+    <meta name="twitter:description" content="Play 2048 on Base. Mint scores. Climb the leaderboard." />
+    <meta name="twitter:image" content="https://github.com/base.png" />
 
     <!-- Using CDN for Tailwind for simplicity -->
     <script src="https://cdn.tailwindcss.com"></script>
