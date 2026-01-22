@@ -1,0 +1,34 @@
+
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjkxNTIsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgwMmVmNzkwRGQ3OTkzQTM1ZkQ4NDdDMDUzRURkQUU5NDBEMDU1NTk2In0",
+    "payload": "eyJkb21haW4iOiJiYXNlbnVtYmVycy52ZXJjZWwuYXBwIn0",
+    "signature": "PLACEHOLDER_SIGNATURE_REQUIRED_FROM_TOOL"
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Base 2048",
+    "homeUrl": "https://basenumbers.vercel.app/",
+    "iconUrl": "https://github.com/base.png",
+    "splashImageUrl": "https://github.com/base.png",
+    "splashBackgroundColor": "#0052FF",
+    "subtitle": "The ultimate on-chain puzzle",
+    "description": "Reach the 2048 tile, climb the leaderboard, and mint NFT achievements on the Base Network.",
+    "screenshotUrls": [
+      "https://github.com/base.png"
+    ],
+    "primaryCategory": "games",
+    "tags": [
+      "2048",
+      "puzzle",
+      "onchain",
+      "base",
+      "game"
+    ],
+    "heroImageUrl": "https://github.com/base.png",
+    "tagline": "Mint your high score on Base",
+    "ogTitle": "Base 2048",
+    "ogDescription": "Play the definitive on-chain 2048 game on Base.",
+    "ogImageUrl": "https://github.com/base.png"
+  }
+}
