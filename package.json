@@ -1,3 +1,4 @@
+
 {
   "name": "base-2048-network",
   "private": true,
@@ -11,7 +12,6 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "@google/genai": "*",
     "ethers": "^6.13.2"
   },
   "devDependencies": {
