@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Grid, GameState, Direction } from './types';
 import { getEmptyGrid, addRandomTile, move, checkGameOver, hasWon } from './services/gameLogic';
@@ -37,6 +38,10 @@ const SoundOffIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
 );
 
+const PaletteIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
+);
+
 const BaseLogo = () => (
   <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="100" height="100" rx="20" fill="#0052FF"/>
@@ -45,7 +50,7 @@ const BaseLogo = () => (
 );
 
 const Ticker = () => (
-  <div className="fixed bottom-0 left-0 right-0 bg-[#0052FF] text-white py-2 overflow-hidden z-40 border-t border-blue-400">
+  <div className="fixed bottom-0 left-0 right-0 bg-[#0052FF]/90 backdrop-blur-md text-white py-2 overflow-hidden z-40 border-t border-blue-400/50 shadow-[0_-5px_20px_rgba(0,82,255,0.3)]">
     <div className="whitespace-nowrap animate-ticker flex font-bold tracking-widest text-xs uppercase">
       <span className="mx-4">Build on Base</span> • 
       <span className="mx-4">Stay Based</span> • 
@@ -67,6 +72,61 @@ const Ticker = () => (
   </div>
 );
 
+// --- THEME DEFINITIONS ---
+type Theme = 'classic' | 'sapphire' | 'grid' | 'aurora';
+
+const THEMES: { id: Theme; name: string; previewColor: string }[] = [
+  { id: 'classic', name: 'Midnight', previewColor: '#0052FF' },
+  { id: 'sapphire', name: 'Sapphire', previewColor: '#1E40AF' },
+  { id: 'grid', name: 'Cyber Grid', previewColor: '#333333' },
+  { id: 'aurora', name: 'Aurora', previewColor: '#10B981' }
+];
+
+// --- BACKGROUND COMPONENT ---
+const Background = ({ theme }: { theme: Theme }) => (
+  <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none transition-all duration-700">
+    {/* Base Layer */}
+    <div className="absolute inset-0 bg-[#050505]" />
+    
+    {/* --- CLASSIC THEME (Default) --- */}
+    <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'classic' ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#0052FF] opacity-20 blur-[120px] rounded-full animate-float-slow" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#0038A8] opacity-15 blur-[120px] rounded-full animate-float-reverse" />
+        <div className="absolute top-[40%] left-[60%] w-[30%] h-[30%] bg-[#00D2FF] opacity-10 blur-[80px] rounded-full animate-pulse-glow" />
+        <div className="absolute inset-0 bg-grid opacity-[0.07]" />
+    </div>
+
+    {/* --- SAPPHIRE THEME (Deep Blue) --- */}
+    <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'sapphire' ? 'opacity-100' : 'opacity-0'}`}
+         style={{ background: 'radial-gradient(circle at 50% -20%, #001E45 0%, #020408 80%)' }}>
+        <div className="absolute top-[0%] left-[10%] w-[80%] h-[40%] bg-[#0052FF] opacity-10 blur-[100px] rounded-full" />
+    </div>
+
+    {/* --- GRID THEME (Cyber) --- */}
+    <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'grid' ? 'opacity-100' : 'opacity-0'}`}
+         style={{ backgroundColor: '#0A0C10' }}>
+         {/* Sharp Grid Lines */}
+         <div className="absolute inset-0" style={{ 
+             backgroundImage: 'linear-gradient(#1F2937 1px, transparent 1px), linear-gradient(90deg, #1F2937 1px, transparent 1px)', 
+             backgroundSize: '40px 40px',
+             opacity: 0.2
+         }} />
+         <div className="absolute inset-0 bg-radial-vignette opacity-80" />
+    </div>
+
+    {/* --- AURORA THEME (Green/Teal) --- */}
+    <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'aurora' ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#10B981] opacity-15 blur-[120px] rounded-full animate-float-slow" />
+        <div className="absolute bottom-[0%] left-[-10%] w-[50%] h-[50%] bg-[#059669] opacity-10 blur-[100px] rounded-full" />
+        <div className="absolute top-[30%] left-[30%] w-[40%] h-[40%] bg-[#34D399] opacity-05 blur-[80px] rounded-full animate-pulse-glow" />
+    </div>
+
+    {/* Vignette Overlay for all themes */}
+    <div className="absolute inset-0 bg-radial-vignette" />
+  </div>
+);
+
+
 export default function App() {
   const [grid, setGrid] = useState<Grid>(getEmptyGrid());
   const [score, setScore] = useState(0);
@@ -77,6 +137,8 @@ export default function App() {
   
   // Settings State
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [theme, setTheme] = useState<Theme>('classic');
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
   
   // Wallet State
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -91,6 +153,11 @@ export default function App() {
     // Load Settings
     const savedSound = localStorage.getItem('base2048-sound');
     if (savedSound !== null) setSoundEnabled(savedSound === 'true');
+
+    const savedTheme = localStorage.getItem('base2048-theme');
+    if (savedTheme && ['classic', 'sapphire', 'grid', 'aurora'].includes(savedTheme)) {
+        setTheme(savedTheme as Theme);
+    }
 
     // Load Best Score
     const savedBest = localStorage.getItem('base2048-best');
@@ -150,6 +217,11 @@ export default function App() {
     const newState = !soundEnabled;
     setSoundEnabled(newState);
     localStorage.setItem('base2048-sound', String(newState));
+  };
+
+  const changeTheme = (newTheme: Theme) => {
+    setTheme(newTheme);
+    localStorage.setItem('base2048-theme', newTheme);
   };
 
   // Save Game State on Change
@@ -319,8 +391,7 @@ export default function App() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Dynamic Background */}
-      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full opacity-5 blur-[120px]" style={{ background: COLORS.primary }} />
+      <Background theme={theme} />
 
       {/* Main Container */}
       <div className="w-full max-w-[360px] z-10 flex flex-col h-full justify-between pb-12">
@@ -328,16 +399,24 @@ export default function App() {
         {/* TOP BAR */}
         <div className="flex flex-col gap-4 mb-2">
             {/* Nav Row */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center backdrop-blur-sm bg-black/20 p-2 rounded-xl border border-white/5 relative z-50">
                 <div className="flex items-center gap-2">
                     <BaseLogo />
-                    <span className="font-black text-xl tracking-tight italic">
+                    <span className="font-black text-xl tracking-tight italic text-white drop-shadow-[0_0_10px_rgba(0,82,255,0.5)]">
                       Base <span className="text-[#0052FF]">2048</span>
                     </span>
                 </div>
                 
                 <div className="flex items-center gap-1">
-                    <button onClick={toggleSound} className="p-2 text-gray-500 hover:text-white transition-colors">
+                    {/* Theme Toggle Button */}
+                    <button 
+                        onClick={() => setShowThemeSelector(!showThemeSelector)} 
+                        className={`p-2 transition-colors hover:bg-white/5 rounded-full ${showThemeSelector ? 'text-white bg-white/10' : 'text-gray-400'}`}
+                    >
+                        <PaletteIcon />
+                    </button>
+
+                    <button onClick={toggleSound} className="p-2 text-gray-400 hover:text-white transition-colors hover:bg-white/5 rounded-full">
                         {soundEnabled ? <SoundOnIcon /> : <SoundOffIcon />}
                     </button>
                     <WalletConnect 
@@ -345,35 +424,50 @@ export default function App() {
                         onDisconnect={() => setWalletAddress(null)}
                     />
                 </div>
+                
+                {/* --- THEME SELECTOR DROPDOWN --- */}
+                {showThemeSelector && (
+                    <div className="absolute top-full right-0 mt-2 bg-[#0F1115] border border-[#222] p-2 rounded-xl shadow-2xl flex gap-2 animate-fade-in z-[60]">
+                        {THEMES.map((t) => (
+                            <button
+                                key={t.id}
+                                onClick={() => changeTheme(t.id)}
+                                className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${theme === t.id ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'border-transparent opacity-80'}`}
+                                style={{ background: t.previewColor }}
+                                title={t.name}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Score Row */}
             <div className="flex justify-between items-end gap-2">
                  <div className="flex flex-col">
-                    <span className="text-[10px] uppercase text-gray-500 font-bold tracking-widest mb-1">Current</span>
-                    <div className="bg-[#1A1A1A] border border-[#333] px-3 py-2 rounded min-w-[80px]">
+                    <span className="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1 ml-1">Current</span>
+                    <div className="bg-[#111111]/80 backdrop-blur-md border border-[#333] px-3 py-2 rounded-lg min-w-[80px] shadow-lg">
                         <span className="text-xl font-mono font-bold text-white">{score}</span>
                     </div>
                  </div>
 
                  <div className="flex flex-col">
-                    <span className="text-[10px] uppercase text-gray-500 font-bold tracking-widest mb-1">Best</span>
-                    <div className="bg-[#1A1A1A] border border-[#333] px-3 py-2 rounded min-w-[80px]">
+                    <span className="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1 ml-1">Best</span>
+                    <div className="bg-[#111111]/80 backdrop-blur-md border border-[#333] px-3 py-2 rounded-lg min-w-[80px] shadow-lg">
                         <span className="text-xl font-mono font-bold text-white">{bestScore}</span>
                     </div>
                  </div>
 
-                 <div className="flex gap-1 ml-auto">
+                 <div className="flex gap-2 ml-auto">
                     <button 
                         onClick={startNewGame}
-                        className="bg-[#1A1A1A] hover:bg-[#252525] border border-[#333] text-white w-10 h-10 rounded flex items-center justify-center transition-colors"
+                        className="bg-[#1A1A1A]/80 hover:bg-[#252525] backdrop-blur-md border border-[#333] text-white w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-lg"
                         title="Reset"
                     >
                         <RestartIcon />
                     </button>
                     <button 
                         onClick={() => setShowLeaderboard(true)}
-                        className="bg-[#0052FF] hover:bg-[#004ad9] text-white w-10 h-10 rounded flex items-center justify-center transition-colors shadow-[0_0_15px_rgba(0,82,255,0.3)]"
+                        className="bg-[#0052FF] hover:bg-[#004ad9] text-white w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,82,255,0.4)] hover:scale-105 active:scale-95"
                         title="Leaderboard"
                     >
                         <TrophyIcon />
@@ -392,27 +486,27 @@ export default function App() {
 
              {/* Game Over / Win Modal */}
             {(gameOver || (gameWon && !grid.flat().includes(0) && !checkGameOver(grid))) && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/95 rounded-xl backdrop-blur-md p-6 text-center animate-fade-in border border-[#333]">
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 rounded-xl backdrop-blur-xl p-6 text-center animate-fade-in border border-white/10 shadow-2xl">
                     <div className="mb-6 transform scale-110">
                         {gameWon ? (
                             <div className="text-6xl mb-4 animate-bounce">🎉</div>
                         ) : (
                             <div className="text-6xl mb-4">💀</div>
                         )}
-                        <h2 className="text-3xl font-black italic uppercase text-white tracking-wider">
+                        <h2 className="text-3xl font-black italic uppercase text-white tracking-wider drop-shadow-lg">
                             {gameWon ? 'Based Win' : 'Game Over'}
                         </h2>
                     </div>
 
-                    <div className="bg-[#111] border border-[#222] p-4 rounded-lg w-full mb-6">
+                    <div className="bg-[#111]/80 border border-[#222] p-4 rounded-lg w-full mb-6 shadow-inner">
                         <span className="text-gray-500 text-xs uppercase font-bold tracking-widest block mb-1">Final Score</span>
-                        <span className="text-5xl font-mono font-bold text-[#0052FF] tracking-tighter">{score}</span>
+                        <span className="text-5xl font-mono font-bold text-[#0052FF] tracking-tighter drop-shadow-[0_0_10px_rgba(0,82,255,0.5)]">{score}</span>
                     </div>
                     
                     <div className="flex flex-col gap-3 w-full">
                         <button 
                             onClick={startNewGame}
-                            className="w-full py-3 bg-white text-black font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors rounded"
+                            className="w-full py-3 bg-white text-black font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors rounded shadow-lg"
                         >
                             Try Again
                         </button>
@@ -454,8 +548,8 @@ export default function App() {
 
         {/* Footer info - View Collection Removed */}
         <div className="flex flex-col items-center justify-center mt-auto gap-1">
-             <div className="text-center text-[10px] text-gray-600 font-mono">
-                BASE 2048
+             <div className="text-center text-[10px] text-gray-500 font-mono tracking-widest opacity-60">
+                BASE NETWORK 2048
              </div>
         </div>
       </div>
@@ -474,8 +568,38 @@ export default function App() {
           from { opacity: 0; transform: scale(0.95); }
           to { opacity: 1; transform: scale(1); }
         }
+        @keyframes float-slow {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(20px, -20px) scale(1.05); }
+        }
+        @keyframes float-reverse {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-20px, 20px) scale(1.1); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0.1; }
+          50% { opacity: 0.2; }
+        }
         .animate-fade-in {
           animation: fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-float-slow {
+          animation: float-slow 15s ease-in-out infinite;
+        }
+        .animate-float-reverse {
+          animation: float-reverse 18s ease-in-out infinite;
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 8s ease-in-out infinite;
+        }
+        .bg-grid {
+          background-size: 40px 40px;
+          background-image:
+            linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+        }
+        .bg-radial-vignette {
+            background: radial-gradient(circle at center, transparent 0%, #050505 100%);
         }
       `}</style>
     </div>
