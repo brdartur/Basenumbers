@@ -131,39 +131,93 @@ export default function App() {
   }, []);
 
   const handleCheckIn = async () => {
-    console.log("Check-in button clicked");
+    console.log("Initiating Check-in...");
     if (!window.ethereum) {
-      alert("Please connect your wallet first (Coinbase Wallet or MetaMask).");
+      alert("Please connect your wallet first.");
       return;
     }
     if (!walletAddress) {
-      alert("Wallet not connected. Please click the connect button.");
+      alert("Connect wallet to perform Daily Check-in.");
       return;
     }
 
     setIsCheckingIn(true);
     try {
+      // 1. Ensure correct network (Base Mainnet)
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x2105' }], 
+        });
+      } catch (e) { console.warn("Switch network failed or already on Base"); }
+
       const checkInData = encodeCheckIn();
+
+      // 2. Try Gasless (EIP-5792) first - works in Base App & Smart Wallets
+      try {
+        const callsParams = {
+            version: '1.0',
+            chainId: 8453,
+            from: walletAddress,
+            calls: [
+                {
+                    to: CONTRACT_ADDRESS as `0x${string}`,
+                    data: checkInData as `0x${string}`,
+                    value: '0x0'
+                }
+            ],
+            capabilities: {
+                paymasterService: {
+                    url: "https://api.developer.coinbase.com/rpc/v1/base/mY-PAYMASTER-URL" // Placeholder for sponsorship
+                }
+            }
+        };
+        
+        // This is the new way for sponsored transactions on Base
+        const result = await window.ethereum.request({
+            method: 'wallet_sendCalls',
+            params: [callsParams]
+        });
+        
+        if (result) {
+            console.log("Calls sent:", result);
+            if (soundEnabled) playWinSound();
+            triggerHaptic('success');
+            alert("Check-in sponsored! Transaction submitted. 🟦");
+            setIsCheckingIn(false);
+            return;
+        }
+      } catch (eipError) {
+        console.log("wallet_sendCalls not supported, falling back to standard sendTransaction", eipError);
+      }
+
+      // 3. Fallback to standard transaction
       const hash = await window.ethereum.request({
         method: 'eth_sendTransaction',
         params: [{ 
           to: CONTRACT_ADDRESS, 
           from: walletAddress, 
-          data: checkInData 
+          data: checkInData,
+          // Remove gas parameters to let wallet estimate
         }],
       });
       
       if (hash) {
-        console.log("Check-in Transaction Hash:", hash);
         if (soundEnabled) playWinSound();
         triggerHaptic('success');
-        alert("Daily Check-in submitted! Transaction sent to Base. 🟦");
+        alert("Daily Check-in submitted! 🟦");
       }
     } catch (error: any) {
       console.error("Check-in failed", error);
-      if (error?.code !== 4001) {
-        alert("Transaction failed. Make sure you are on Base Network.");
-      }
+      // The error in the user's screenshot usually happens when the transaction REVERTS
+      // commonly because the user already checked in today.
+      if (error?.message?.includes("User rejected")) return;
+      
+      alert(
+        error?.code === -32603 || error?.message?.includes("Error generating transaction")
+        ? "Simulation failed: You might have already checked in today or have insufficient ETH for gas if not using a Smart Wallet."
+        : "Transaction failed. Please try again on Base Network."
+      );
     } finally {
       setIsCheckingIn(false);
     }
@@ -194,11 +248,12 @@ export default function App() {
     setIsVerifying(true);
     try {
       const scoreData = encodeSubmitScore(bestScore);
-      const hash = await window.ethereum.request({
+      await window.ethereum.request({
         method: 'eth_sendTransaction',
         params: [{ to: CONTRACT_ADDRESS, from: walletAddress, data: scoreData }],
       });
-      if (hash) { setTxHash(hash); if (soundEnabled) playWinSound(); setTimeout(() => setShowLeaderboard(true), 2000); }
+      if (soundEnabled) playWinSound(); 
+      setTimeout(() => setShowLeaderboard(true), 2000);
     } catch (error: any) {
       if (error?.code !== 4001) alert("Transaction failed.");
     } finally { setIsVerifying(false); }
