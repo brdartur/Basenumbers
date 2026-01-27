@@ -26,14 +26,8 @@ const TrophyIcon = () => (
   </svg>
 );
 
-const CalendarIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-    <line x1="16" y1="2" x2="16" y2="6"></line>
-    <line x1="8" y1="2" x2="8" y2="6"></line>
-    <line x1="3" y1="10" x2="21" y2="10"></line>
-    <path d="M8 14l2 2 4-4"></path>
-  </svg>
+const GMIcon = () => (
+  <span className="font-black text-sm italic tracking-tighter">GM</span>
 );
 
 const SoundOnIcon = () => (
@@ -266,7 +260,7 @@ export default function App() {
                         title="Daily Check-in"
                         className={`bg-[#0052FF]/20 hover:bg-[#0052FF]/40 border border-[#0052FF]/30 text-[#0052FF] w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-lg active:scale-95 ${isCheckingIn ? 'animate-pulse' : ''}`}
                     >
-                        {isCheckingIn ? <div className="w-4 h-4 border-2 border-[#0052FF] border-t-transparent rounded-full animate-spin" /> : <CalendarIcon />}
+                        {isCheckingIn ? <div className="w-4 h-4 border-2 border-[#0052FF] border-t-transparent rounded-full animate-spin" /> : <GMIcon />}
                     </button>
 
                     <button onClick={startNewGame} className="bg-[#1A1A1A]/80 hover:bg-[#252525] border border-[#333] text-white w-10 h-10 rounded-lg flex items-center justify-center transition-all active:scale-95 shadow-lg"><RestartIcon /></button>
