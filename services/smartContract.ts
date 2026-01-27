@@ -45,6 +45,10 @@ export const encodeSubmitScore = (score: number): string => {
   return CONTRACT_INTERFACE.encodeFunctionData("submitScore", [score]);
 };
 
+export const encodeCheckIn = (): string => {
+  return CONTRACT_INTERFACE.encodeFunctionData("checkIn", []);
+};
+
 export const fetchCurrentOnChainScore = async (ethereum: any, address: string): Promise<number> => {
     if (!CONTRACT_ADDRESS || !address) return 0;
     try {
