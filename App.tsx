@@ -7,7 +7,7 @@ import AchievementBadges from './components/AchievementBadges';
 import WalletConnect from './components/WalletConnect';
 import LeaderboardModal from './components/LeaderboardModal';
 import { COLORS } from './constants';
-import { CONTRACT_ADDRESS, encodeSubmitScore, fetchCurrentOnChainScore, executeCheckIn } from './services/smartContract';
+import { CONTRACT_ADDRESS, encodeSubmitScore, fetchCurrentOnChainScore, encodeCheckIn } from './services/smartContract';
 import { playMoveSound, playMergeSound, playWinSound, playGameOverSound, triggerHaptic } from './services/audio';
 
 // --- ICONS ---
@@ -131,26 +131,38 @@ export default function App() {
   }, []);
 
   const handleCheckIn = async () => {
+    console.log("Check-in button clicked");
     if (!window.ethereum) {
-      alert("Please install a wallet like Coinbase Wallet or MetaMask.");
+      alert("Please connect your wallet first (Coinbase Wallet or MetaMask).");
       return;
     }
     if (!walletAddress) {
-      alert("Please connect your wallet first!");
+      alert("Wallet not connected. Please click the connect button.");
       return;
     }
 
     setIsCheckingIn(true);
     try {
-      const tx = await executeCheckIn(window.ethereum);
-      await tx.wait();
-      if (soundEnabled) playWinSound();
-      triggerHaptic('success');
-      alert("Daily Check-in successful! 🟦");
+      const checkInData = encodeCheckIn();
+      const hash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{ 
+          to: CONTRACT_ADDRESS, 
+          from: walletAddress, 
+          data: checkInData 
+        }],
+      });
+      
+      if (hash) {
+        console.log("Check-in Transaction Hash:", hash);
+        if (soundEnabled) playWinSound();
+        triggerHaptic('success');
+        alert("Daily Check-in submitted! Transaction sent to Base. 🟦");
+      }
     } catch (error: any) {
       console.error("Check-in failed", error);
       if (error?.code !== 4001) {
-        alert("Check-in failed. Make sure you have enough Base ETH for gas.");
+        alert("Transaction failed. Make sure you are on Base Network.");
       }
     } finally {
       setIsCheckingIn(false);
@@ -254,7 +266,7 @@ export default function App() {
                     </div>
                  </div>
                  <div className="flex gap-2 ml-auto">
-                    {/* CHECK-IN BUTTON IN PLACE OF THEME BUTTON */}
+                    {/* CHECK-IN BUTTON */}
                     <button 
                         onClick={handleCheckIn} 
                         disabled={isCheckingIn}
