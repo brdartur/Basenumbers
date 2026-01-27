@@ -7,7 +7,7 @@ import AchievementBadges from './components/AchievementBadges';
 import WalletConnect from './components/WalletConnect';
 import LeaderboardModal from './components/LeaderboardModal';
 import { COLORS } from './constants';
-import { CONTRACT_ADDRESS, encodeSubmitScore, fetchCurrentOnChainScore } from './services/smartContract';
+import { CONTRACT_ADDRESS, encodeSubmitScore, fetchCurrentOnChainScore, executeCheckIn } from './services/smartContract';
 import { playMoveSound, playMergeSound, playWinSound, playGameOverSound, triggerHaptic } from './services/audio';
 
 // --- ICONS ---
@@ -26,16 +26,22 @@ const TrophyIcon = () => (
   </svg>
 );
 
+const CalendarIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+    <line x1="16" y1="2" x2="16" y2="6"></line>
+    <line x1="8" y1="2" x2="8" y2="6"></line>
+    <line x1="3" y1="10" x2="21" y2="10"></line>
+    <path d="M8 14l2 2 4-4"></path>
+  </svg>
+);
+
 const SoundOnIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
 );
 
 const SoundOffIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-);
-
-const PaletteIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
 );
 
 const BaseLogo = () => (
@@ -47,26 +53,12 @@ const BaseLogo = () => (
 
 type Theme = 'classic' | 'sapphire' | 'grid' | 'aurora';
 
-const THEMES: { id: Theme; name: string; previewColor: string }[] = [
-  { id: 'classic', name: 'Midnight', previewColor: '#0052FF' },
-  { id: 'sapphire', name: 'Sapphire', previewColor: '#1E40AF' },
-  { id: 'grid', name: 'Cyber Grid', previewColor: '#333333' },
-  { id: 'aurora', name: 'Aurora', previewColor: '#10B981' }
-];
-
 const Background = ({ theme }: { theme: Theme }) => (
   <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none transition-all duration-700">
     <div className="absolute inset-0 bg-[#050505]" />
     <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'classic' ? 'opacity-100' : 'opacity-0'}`}>
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#0052FF] opacity-20 blur-[120px] rounded-full animate-float-slow" />
         <div className="absolute inset-0 bg-grid opacity-[0.07]" />
-    </div>
-    <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'sapphire' ? 'opacity-100' : 'opacity-0'}`} style={{ background: 'radial-gradient(circle at 50% -20%, #001E45 0%, #020408 80%)' }}></div>
-    <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'grid' ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: '#0A0C10' }}>
-         <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(#1F2937 1px, transparent 1px), linear-gradient(90deg, #1F2937 1px, transparent 1px)', backgroundSize: '40px 40px', opacity: 0.2 }} />
-    </div>
-    <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'aurora' ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#10B981] opacity-15 blur-[120px] rounded-full animate-float-slow" />
     </div>
     <div className="absolute inset-0 bg-radial-vignette" />
   </div>
@@ -81,18 +73,16 @@ export default function App() {
   const isInitialized = useRef(false);
   
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [theme, setTheme] = useState<Theme>('classic');
-  const [showThemeSelector, setShowThemeSelector] = useState(false);
+  const [theme] = useState<Theme>('classic');
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [, setTxHash] = useState<string | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
     const savedSound = localStorage.getItem('base2048-sound');
     if (savedSound !== null) setSoundEnabled(savedSound === 'true');
-    const savedTheme = localStorage.getItem('base2048-theme');
-    if (savedTheme && ['classic', 'sapphire', 'grid', 'aurora'].includes(savedTheme)) setTheme(savedTheme as Theme);
     const savedBest = localStorage.getItem('base2048-best');
     if (savedBest) setBestScore(parseInt(savedBest));
     const savedState = localStorage.getItem('base2048-state');
@@ -139,6 +129,33 @@ export default function App() {
     setGameWon(false);
     setTxHash(null);
   }, []);
+
+  const handleCheckIn = async () => {
+    if (!window.ethereum) {
+      alert("Please install a wallet like Coinbase Wallet or MetaMask.");
+      return;
+    }
+    if (!walletAddress) {
+      alert("Please connect your wallet first!");
+      return;
+    }
+
+    setIsCheckingIn(true);
+    try {
+      const tx = await executeCheckIn(window.ethereum);
+      await tx.wait();
+      if (soundEnabled) playWinSound();
+      triggerHaptic('success');
+      alert("Daily Check-in successful! 🟦");
+    } catch (error: any) {
+      console.error("Check-in failed", error);
+      if (error?.code !== 4001) {
+        alert("Check-in failed. Make sure you have enough Base ETH for gas.");
+      }
+    } finally {
+      setIsCheckingIn(false);
+    }
+  };
 
   const executeMove = useCallback((direction: Direction) => {
     if (gameOver || showLeaderboard) return;
@@ -226,37 +243,31 @@ export default function App() {
             <div className="flex justify-between items-end gap-2">
                  <div className="flex flex-col">
                     <span className="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1 ml-1">Score</span>
-                    <div className="bg-[#111111]/80 backdrop-blur-md border border-[#333] px-3 py-2 rounded-lg min-w-[80px] shadow-lg">
+                    <div className="bg-[#111111]/80 backdrop-blur-md border border-[#333] px-3 py-2 rounded-lg min-w-[80px] shadow-lg text-center">
                         <span className="text-xl font-mono font-bold text-white">{score}</span>
                     </div>
                  </div>
                  <div className="flex flex-col">
                     <span className="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1 ml-1">Best</span>
-                    <div className="bg-[#111111]/80 backdrop-blur-md border border-[#333] px-3 py-2 rounded-lg min-w-[80px] shadow-lg">
+                    <div className="bg-[#111111]/80 backdrop-blur-md border border-[#333] px-3 py-2 rounded-lg min-w-[80px] shadow-lg text-center">
                         <span className="text-xl font-mono font-bold text-white">{bestScore}</span>
                     </div>
                  </div>
-                 <div className="flex gap-2 ml-auto relative">
-                    <button onClick={() => setShowThemeSelector(!showThemeSelector)} className="bg-[#1A1A1A]/80 hover:bg-[#252525] border border-[#333] text-white w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-lg active:scale-95"><PaletteIcon /></button>
+                 <div className="flex gap-2 ml-auto">
+                    {/* CHECK-IN BUTTON IN PLACE OF THEME BUTTON */}
+                    <button 
+                        onClick={handleCheckIn} 
+                        disabled={isCheckingIn}
+                        title="Daily Check-in"
+                        className={`bg-[#0052FF]/20 hover:bg-[#0052FF]/40 border border-[#0052FF]/30 text-[#0052FF] w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-lg active:scale-95 ${isCheckingIn ? 'animate-pulse' : ''}`}
+                    >
+                        {isCheckingIn ? <div className="w-4 h-4 border-2 border-[#0052FF] border-t-transparent rounded-full animate-spin" /> : <CalendarIcon />}
+                    </button>
+
                     <button onClick={startNewGame} className="bg-[#1A1A1A]/80 hover:bg-[#252525] border border-[#333] text-white w-10 h-10 rounded-lg flex items-center justify-center transition-all active:scale-95 shadow-lg"><RestartIcon /></button>
                     <button onClick={() => setShowLeaderboard(true)} className="bg-[#0052FF] hover:bg-[#004ad9] text-white w-10 h-10 rounded-lg flex items-center justify-center shadow-lg transition-all active:scale-95"><TrophyIcon /></button>
                  </div>
             </div>
-            
-            {showThemeSelector && (
-              <div className="bg-black/80 backdrop-blur-lg border border-white/10 p-3 rounded-xl animate-fade-in grid grid-cols-4 gap-2">
-                 {THEMES.map(t => (
-                   <button 
-                    key={t.id} 
-                    onClick={() => { setTheme(t.id); localStorage.setItem('base2048-theme', t.id); setShowThemeSelector(false); }}
-                    className={`p-2 rounded-lg border flex flex-col items-center gap-1 transition-all ${theme === t.id ? 'border-[#0052FF] bg-[#0052FF]/10' : 'border-white/5 bg-white/5'}`}
-                   >
-                     <div className="w-4 h-4 rounded-full" style={{ backgroundColor: t.previewColor }} />
-                     <span className="text-[8px] font-bold uppercase text-white truncate w-full text-center">{t.name}</span>
-                   </button>
-                 ))}
-              </div>
-            )}
         </div>
 
         <div className="flex-grow flex flex-col justify-center relative">
